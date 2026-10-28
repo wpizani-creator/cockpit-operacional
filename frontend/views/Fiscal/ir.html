@@ -1,0 +1,1242 @@
+<!-- ========================================================================================= -->
+<!-- ARQUIVO: frontend/views/Fiscal/ir.html                                                    -->
+<!-- CONTEXTO: Módulo Fiscal PRO - Correção do Cálculo do Líquido Nota (Negócios - Taxas - IR)  -->
+<!-- ========================================================================================= -->
+<div class="space-y-6 relative">
+
+    <!-- MODAL DE PROCESSAMENTO PDF -->
+    <div id="modalLoadingPdf" class="hidden fixed inset-0 z-50 bg-gray-950/80 backdrop-blur-sm flex flex-col items-center justify-center transition-all">
+        <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center max-w-sm w-full mx-4 space-y-4">
+            <div class="relative flex items-center justify-center">
+                <div class="w-16 h-16 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div>
+                <i class="fa-solid fa-brain text-amber-400 text-xl absolute"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-white tracking-wide">Processando PDF com IA</h3>
+                <p class="text-xs text-gray-400 mt-1">A IA do Gemini está analisando suas notas de corretagem...</p>
+            </div>
+            <span class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full font-mono animate-pulse">
+                <i class="fa-solid fa-sync fa-spin mr-1"></i> Extraindo dados contábeis...
+            </span>
+        </div>
+    </div>
+
+    <!-- MODAL ADICIONAR PREJUÍZO MANUAL -->
+    <div id="modalAddPrejuizo" class="hidden fixed inset-0 z-50 bg-gray-950/80 backdrop-blur-sm flex items-center justify-center transition-all">
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-2xl max-w-md w-full mx-4 space-y-5">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-emerald-400"></i> Lançar Prejuízo Anterior (Manual)
+                </h3>
+                <button onclick="fecharModalPrejuizo()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-4 text-xs font-mono">
+                <div>
+                    <label class="block text-gray-400 mb-1">Mês / Ano do Prejuízo:</label>
+                    <input type="month" id="inputPrejuizoMesAno" value="2025-09" class="w-full bg-gray-950 border border-gray-800 text-amber-400 font-bold rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Valor do Prejuízo acumulado (R$):</label>
+                    <input type="number" step="0.01" id="inputPrejuizoValor" placeholder="Ex: 1500.00" class="w-full bg-gray-950 border border-gray-800 text-red-400 font-bold rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500">
+                    <span class="text-[10px] text-gray-500 mt-1 block">* Informe o valor líquido negativo acumulado do mês.</span>
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Observação / Corretora (Opcional):</label>
+                    <input type="text" id="inputPrejuizoObs" placeholder="Ex: Saldo acumulado em outra corretora" class="w-full bg-gray-950 border border-gray-800 text-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="fecharModalPrejuizo()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-xs font-semibold">Cancelar</button>
+                <button onclick="salvarPrejuizoManual()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-semibold">Salvar Lançamento</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CABEÇALHO MÓDULO -->
+    <div class="bg-gray-900 border border-gray-800 p-5 rounded-xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="flex items-center gap-2.5">
+                <span class="bg-amber-600/20 text-amber-400 border border-amber-500/30 p-2 rounded-lg text-sm">
+                    <i class="fa-solid fa-calculator"></i>
+                </span>
+                <h1 class="text-base font-bold text-white tracking-wide">Módulo Fiscal: Apuração de IR & DARF (Day Trade)</h1>
+                <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">PRO</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Cálculo de alíquota (20%), compensação de prejuízos e conciliação real por PDF.</p>
+        </div>
+
+        <!-- SELETOR DE MÊS E ANO -->
+        <div id="boxSeletorApuracao" class="flex items-center gap-2">
+            <label class="text-xs text-gray-400 font-mono">Mês de Apuração:</label>
+            <div class="flex items-center gap-1.5 bg-gray-950 border border-amber-500/40 rounded-lg p-1">
+                <select id="selectMesApuracao" onchange="atualizarMesAnoCustomizado()" class="bg-gray-900 text-amber-400 font-bold rounded px-2 py-1 text-xs focus:outline-none font-mono cursor-pointer">
+                    <option value="" selected>-- Mês --</option>
+                    <option value="01">Janeiro</option>
+                    <option value="02">Fevereiro</option>
+                    <option value="03">Março</option>
+                    <option value="04">Abril</option>
+                    <option value="05">Maio</option>
+                    <option value="06">Junho</option>
+                    <option value="07">Julho</option>
+                    <option value="08">Agosto</option>
+                    <option value="09">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+                <select id="selectAnoApuracao" onchange="atualizarMesAnoCustomizado()" class="bg-gray-900 text-amber-400 font-bold rounded px-2 py-1 text-xs focus:outline-none font-mono cursor-pointer">
+                    <option value="" selected>-- Ano --</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegação por Abas (4 Abas) -->
+    <div class="flex border-b border-gray-800 gap-6 text-xs font-semibold overflow-x-auto">
+        <button onclick="mudarAbaIr('apuracao')" id="btnAbaApuracao" class="pb-3 border-b-2 border-amber-500 text-amber-400 transition flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Apuração Mensal & DARF
+        </button>
+        <button onclick="mudarAbaIr('prejuizos')" id="btnAbaPrejuizos" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-book-bookmark"></i> Histórico & Livro de Apuração
+        </button>
+        <button onclick="mudarAbaIr('totais')" id="btnAbaTotais" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-chart-pie text-emerald-400"></i> Totais Gerais & DIRPF
+        </button>
+        <button onclick="mudarAbaIr('conciliacao')" id="btnAbaConciliacao" class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-file-pdf text-red-400"></i> Conciliação Notas / Extrato (PDF)
+        </button>
+    </div>
+
+    <!-- ABA 1: APURAÇÃO MENSAL -->
+    <div id="conteudoAbaApuracao" class="space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl shadow">
+                <div class="text-[10px] text-gray-400 uppercase font-mono">Resultado Líquido do Mês</div>
+                <div id="irResLiquidoMes" class="text-lg font-bold font-mono mt-1 text-gray-200">R$ 0,00</div>
+            </div>
+            <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl shadow">
+                <div class="text-[10px] text-gray-400 uppercase font-mono">Prejuízo Compensado</div>
+                <div id="irPrejuizoCompensado" class="text-lg font-bold font-mono mt-1 text-red-400">R$ 0,00</div>
+            </div>
+            <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl shadow">
+                <div class="text-[10px] text-gray-400 uppercase font-mono">IR Retido (Dedo-Duro 1%)</div>
+                <div id="irRetidoFonte" class="text-lg font-bold font-mono mt-1 text-amber-400">R$ 0,00</div>
+            </div>
+            <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl shadow relative">
+                <div class="text-[10px] text-gray-400 uppercase font-mono">DARF a Recolher (20%)</div>
+                <div id="irDarfPagar" class="text-lg font-bold font-mono mt-1 text-emerald-400">R$ 0,00</div>
+            </div>
+        </div>
+
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-receipt text-blue-400"></i> Demonstrativo de Apuração (Day Trade)
+                </h3>
+                <div id="containerStatusDarf" class="flex items-center gap-2">
+                    <span class="text-xs text-gray-400 font-mono">Status DARF:</span>
+                    <div id="btnStatusDarf">
+                        <span class="px-3 py-1 rounded-lg text-xs font-bold font-mono border bg-gray-800 text-gray-500 border-gray-700">
+                            Selecione Mês/Ano
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left font-mono">
+                    <tbody class="divide-y divide-gray-800 text-gray-300">
+                        <tr><td class="py-3 px-2 text-gray-400">1. Resultado Bruto das Operações</td><td id="detResBrutoOp" class="py-3 px-2 text-right font-bold text-white">R$ 0,00</td></tr>
+                        <tr>
+                            <td class="py-3 px-2 text-gray-400 flex items-center gap-1">
+                                2. (-) Prejuízos Acumulados Anteriores Compensados
+                                <i class="fa-solid fa-circle-info text-[10px] text-gray-500 hover:text-amber-400 cursor-pointer" title="Valor dos prejuízos de meses passados usado para abater os lucros deste mês."></i>
+                            </td>
+                            <td id="detPrejuizoAnt" class="py-3 px-2 text-right font-bold text-red-400">R$ 0,00</td>
+                        </tr>
+                        <tr><td class="py-3 px-2 text-gray-300 font-bold">3. Total do Resultado Bruto (Após Compensação)</td><td id="detResBrutoApósComp" class="py-3 px-2 text-right font-bold text-white">R$ 0,00</td></tr>
+                        <tr><td class="py-3 px-2 text-gray-400">4. (-) Soma das Despesas Operacionais (Corretagem / B3)</td><td id="detSomaDespesas" class="py-3 px-2 text-right font-bold text-red-400">R$ 0,00</td></tr>
+                        <tr class="bg-gray-950/50"><td class="py-3 px-2 text-amber-400 font-bold">5. Base de Cálculo do Imposto (Resultado Líquido)</td><td id="detBaseCalculo" class="py-3 px-2 text-right font-bold text-amber-400">R$ 0,00</td></tr>
+                        <tr><td class="py-3 px-2 text-gray-400">6. Imposto Devido (20%)</td><td id="detImpostoDevido" class="py-3 px-2 text-right font-bold text-white">R$ 0,00</td></tr>
+                        <tr><td class="py-3 px-2 text-gray-400">7. (-) IR Retido na Fonte Abatido (Dedo-Duro Acumulado)</td><td id="detDedoDuro" class="py-3 px-2 text-right font-bold text-amber-400">R$ 0,00</td></tr>
+                        <tr class="bg-emerald-950/20 border-t-2 border-emerald-500/30">
+                            <td class="py-3 px-2 text-emerald-400 font-bold text-sm">8. (=) VALOR LÍQUIDO DA DARF A RECOLHER</td>
+                            <td id="detTotalDarf" class="py-3 px-2 text-right font-bold text-emerald-400 text-sm">R$ 0,00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABA 2: LIVRO DE APURAÇÃO & HISTÓRICO (COM LINHA DE TOTAIS NO RODAPÉ) -->
+    <div id="conteudoAbaPrejuizos" class="hidden space-y-5">
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-800 pb-4">
+                <div>
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-book-bookmark text-amber-400"></i> Livro de Apuração & Histórico de Prejuízos
+                    </h3>
+                    <p class="text-xs text-gray-400 mt-0.5">Encadeamento contábil completo com controle de IRRF acumulado por ano-calendário.</p>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-gray-400 font-mono">Origem:</label>
+                        <select id="filtroPrejuizoOrigem" onchange="renderizarTabelaPrejuizos()" class="bg-gray-950 border border-gray-800 text-amber-400 font-bold rounded-lg px-2.5 py-1.5 text-xs font-mono cursor-pointer">
+                            <option value="todas">Todas (Importadas + Digitadas)</option>
+                            <option value="importado">Apenas Importadas (PDF)</option>
+                            <option value="manual">Apenas Digitadas (Manual)</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-gray-400 font-mono">Ano:</label>
+                        <select id="filtroPrejuizoAno" onchange="renderizarTabelaPrejuizos()" class="bg-gray-950 border border-gray-800 text-amber-400 font-bold rounded-lg px-2.5 py-1.5 text-xs font-mono cursor-pointer">
+                            <option value="todos">Todos os Anos</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                        </select>
+                    </div>
+
+                    <button onclick="abrirModalPrejuizo()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-plus"></i> Adicionar Manual
+                    </button>
+                </div>
+            </div>
+
+            <!-- TABELA AUDITÁVEL COM LINHA DE TOTALIZADOR NO TFOOT -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left font-mono">
+                    <thead>
+                        <tr class="bg-gray-950 text-gray-400 border-b border-gray-800 uppercase text-[10px]">
+                            <th class="py-3 px-2 text-center">Mês / Ano</th>
+                            <th class="py-3 px-2 text-right">(A)<br>Res. Líquido</th>
+                            <th class="py-3 px-2 text-right text-red-400">(B)<br>Prej. Acum. Anterior</th>
+                            <th class="py-3 px-2 text-right text-amber-400">(C)<br>Base Cálculo</th>
+                            <th class="py-3 px-2 text-right text-red-300">(D)<br>Saldo Prej. Transportar</th>
+                            <th class="py-3 px-2 text-right">(E)<br>IR Devido (20%)</th>
+                            <th class="py-3 px-2 text-right text-amber-400">(F1)<br>IRRF do Mês</th>
+                            <th class="py-3 px-2 text-right text-amber-300">(F2)<br>IRRF Acum. Ano*</th>
+                            <th class="py-3 px-2 text-right text-emerald-400">(G)<br>DARF a Pagar</th>
+                            <th class="py-3 px-2 text-center">(H)<br>Status / Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabelaPrejuizos" class="divide-y divide-gray-800 text-gray-300"></tbody>
+                    <tfoot id="rodapeTabelaPrejuizos" class="bg-gray-950/80 border-t-2 border-amber-500/30 text-amber-400 font-bold"></tfoot>
+                </table>
+            </div>
+
+            <div class="bg-amber-500/10 border border-amber-500/20 px-4 py-3 rounded-lg flex items-start gap-2.5 text-xs text-amber-300 font-mono">
+                <i class="fa-solid fa-circle-info text-amber-400 mt-0.5"></i>
+                <div>
+                    <span class="font-bold text-white">Nota Fiscal sobre o IRRF Acumulado (*):</span> Conforme as normas da Receita Federal, o saldo acumulado de Dedo-Duro <strong>reinicia (zera) a cada virada de ano-calendário</strong> para fins de abatimento via DARF. Saldos remanescentes não utilizados até dezembro devem ser recuperados na Declaração Anual de Ajuste (DIRPF).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABA 3: TOTAIS GERAIS & DIRPF -->
+    <div id="conteudoAbaTotais" class="hidden space-y-5">
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-800 pb-4">
+                <div>
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-emerald-400"></i> Resumo Anual Consolidado para DIRPF
+                    </h3>
+                    <p class="text-xs text-gray-400 mt-0.5">Totais gerais de resultados, impostos e retenções para preenchimento na Declaração de Ajuste Anual.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-gray-400 font-mono">Filtrar Ano:</label>
+                    <select id="filtroAnoConsolidado" onchange="renderizarTotaisGerais()" class="bg-gray-950 border border-gray-800 text-amber-400 font-bold rounded-lg px-3 py-1.5 text-xs font-mono cursor-pointer">
+                        <option value="todos">Todos os Anos</option>
+                        <option value="2024">2024</option>
+                        <option value="2025" selected>2025</option>
+                        <option value="2026">2026</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Cards Resumo Consolidado -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
+                <div class="bg-gray-950 border border-gray-800 p-4 rounded-xl">
+                    <div class="text-[10px] text-gray-400 uppercase">Resultado Líquido Total</div>
+                    <div id="totResLiquido" class="text-base font-bold mt-1 text-emerald-400">R$ 0,00</div>
+                </div>
+                <div class="bg-gray-950 border border-gray-800 p-4 rounded-xl">
+                    <div class="text-[10px] text-gray-400 uppercase">Total de Imposto Devido (20%)</div>
+                    <div id="totImpostoDevido" class="text-base font-bold mt-1 text-white">R$ 0,00</div>
+                </div>
+                <div class="bg-gray-950 border border-gray-800 p-4 rounded-xl">
+                    <div class="text-[10px] text-gray-400 uppercase">Total de IRRF "Dedo-Duro" Retido</div>
+                    <div id="totIrrfRetido" class="text-base font-bold mt-1 text-amber-400">R$ 0,00</div>
+                </div>
+                <div class="bg-gray-950 border border-gray-800 p-4 rounded-xl">
+                    <div class="text-[10px] text-gray-400 uppercase">Total de DARF Recolhida</div>
+                    <div id="totDarfRecolhida" class="text-base font-bold mt-1 text-emerald-400">R$ 0,00</div>
+                </div>
+            </div>
+
+            <!-- Tabela Detalhada do Consolidado -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left font-mono">
+                    <tbody class="divide-y divide-gray-800 text-gray-300">
+                        <tr><td class="py-3 px-3 text-gray-400">1. Soma dos Resultados Brutos das Operações</td><td id="resConsBruto" class="py-3 px-3 text-right font-bold text-white">R$ 0,00</td></tr>
+                        <tr><td class="py-3 px-3 text-gray-400">2. Soma das Despesas Operacionais (Corretagem / Emolumentos / B3)</td><td id="resConsDespesas" class="py-3 px-3 text-right font-bold text-red-400">R$ 0,00</td></tr>
+                        <tr class="bg-gray-950/50"><td class="py-3 px-3 text-amber-400 font-bold">3. Resultado Líquido Consolidado do Período</td><td id="resConsLiquido" class="py-3 px-3 text-right font-bold text-amber-400">R$ 0,00</td></tr>
+                        <tr><td class="py-3 px-3 text-gray-400">4. Total de Prejuízos Compensados no Período</td><td id="resConsPrejuizoComp" class="py-3 px-3 text-right font-bold text-red-400">R$ 0,00</td></tr>
+                        <tr><td class="py-3 px-3 text-gray-400">5. Total de Imposto de Renda Devido (20%)</td><td id="resConsImpDevido" class="py-3 px-3 text-right font-bold text-white">R$ 0,00</td></tr>
+                        <tr><td class="py-3 px-3 text-gray-400">6. Total de IRRF Retido na Fonte ("Dedo-Duro")</td><td id="resConsIrrf" class="py-3 px-3 text-right font-bold text-amber-400">R$ 0,00</td></tr>
+                        <tr class="bg-emerald-950/20 border-t-2 border-emerald-500/30">
+                            <td class="py-3 px-3 text-emerald-400 font-bold text-sm">7. TOTAL LÍQUIDO DE DARFS A RECOLHER NO PERÍODO</td>
+                            <td id="resConsDarfPagar" class="py-3 px-3 text-right font-bold text-emerald-400 text-sm">R$ 0,00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABA 4: CONCILIAÇÃO PDF -->
+    <div id="conteudoAbaConciliacao" class="hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-xl flex flex-col justify-between space-y-4">
+                <div>
+                    <h3 class="text-xs font-bold text-white uppercase mb-1"><i class="fa-solid fa-file-pdf text-red-400 mr-1.5"></i> Importar Novo PDF Real</h3>
+                    <p class="text-[11px] text-gray-400">Selecione o PDF para leitura real no backend.</p>
+                </div>
+                <div id="boxDropPdf" class="border-2 border-dashed border-gray-700 hover:border-amber-500 bg-gray-950 rounded-xl p-5 text-center transition cursor-pointer" onclick="document.getElementById('inputPdfExtrato').click()">
+                    <i id="iconDropPdf" class="fa-solid fa-cloud-arrow-up text-2xl text-amber-400 mb-1.5"></i>
+                    <p id="labelDropPdf" class="text-xs text-gray-300 font-medium">Selecionar PDF</p>
+                </div>
+                <input type="file" id="inputPdfExtrato" accept=".pdf" multiple class="hidden" onchange="processarExtratoPdf(event)">
+            </div>
+
+            <div class="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-xl space-y-3">
+                <div class="flex justify-between items-center border-b border-gray-800 pb-2.5">
+                    <div class="flex items-center gap-3">
+                        <h4 class="text-xs font-bold text-white uppercase font-mono">Arquivos Importados (Filtro Visual)</h4>
+                        <div class="flex items-center gap-1.5 text-[10px]">
+                            <button onclick="marcarTodas(true)" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 border border-amber-900/50 px-2 py-0.5 rounded">Marcar Todas</button>
+                            <button onclick="marcarTodas(false)" class="text-gray-400 hover:text-gray-300 bg-gray-950 border border-gray-800 px-2 py-0.5 rounded">Desmarcar Todas</button>
+                        </div>
+                    </div>
+                    <button onclick="limparHistoricoPdf()" class="text-[10px] text-red-400 hover:text-red-300 bg-red-950/40 border border-red-900 px-2 py-1 rounded">Limpar Histórico</button>
+                </div>
+                <div class="overflow-x-auto max-h-44">
+                    <table class="w-full text-xs text-left font-mono">
+                        <thead><tr class="bg-gray-950 text-gray-400 uppercase text-[9px]"><th class="py-2 px-2 text-center w-8">Exibir</th><th class="py-2">Nome</th><th class="py-2 text-center">Notas</th><th class="py-2 text-right">IRRF</th></tr></thead>
+                        <tbody id="tabelaArquivosHistoricoCorpo" class="divide-y divide-gray-800 text-white"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARDS DE TOTAIS DA CONCILIAÇÃO (ENTRE IMPORTAÇÃO E DETALHES) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono">
+            <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
+                <div class="text-[10px] text-gray-400 uppercase">VAL . NEGÓCIOS (TOTAL)</div>
+                <div id="concCardValorNegociado" class="text-base font-bold mt-1 text-white">R$ 0,00</div>
+            </div>
+            <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
+                <div class="text-[10px] text-gray-400 uppercase">TAXAS (DESPESAS - IR)</div>
+                <div id="concCardTaxas" class="text-base font-bold mt-1 text-white">R$ 0,00</div>
+            </div>
+            <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
+                <div class="text-[10px] text-gray-400 uppercase">IRRF (TOTAL)</div>
+                <div id="concCardIr" class="text-base font-bold mt-1 text-white">R$ 0,00</div>
+            </div>
+            <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
+                <div class="text-[10px] text-gray-400 uppercase">LÍQUIDO NOTA (TOTAL)</div>
+                <div id="concCardLiquidoNota" class="text-base font-bold mt-1 text-white">R$ 0,00</div>
+            </div>
+        </div>
+
+        <div id="resultadoConciliacaoContainer" class="hidden space-y-5">
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-xl space-y-3">
+                <h4 class="text-xs font-bold text-white uppercase font-mono"><i class="fa-solid fa-list-check text-emerald-400 mr-1.5"></i> Detalhes Extraídos por Nota</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left font-mono">
+                        <thead>
+                            <tr class="bg-gray-950 text-gray-400 uppercase text-[10px]">
+                                <th class="py-2.5 px-3">Pregão</th>
+                                <th class="py-2.5 px-3">Nota</th>
+                                <th class="py-2.5 px-3">Corretora</th>
+                                <th class="py-2.5 px-3">Ativo</th>
+                                <th class="py-2.5 px-3 text-right">VAL . NEGÓCIOS</th>
+                                <th class="py-2.5 px-3 text-right">TAXAS (DESPESAS - IR)</th>
+                                <th class="py-2.5 px-3 text-right">IRRF</th>
+                                <th class="py-2.5 px-3 text-right">LÍQUIDO NOTA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaNotasProcessadasCorpo" class="divide-y divide-gray-800 text-gray-300"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.arquivosPdfHistorico = [];
+    window.prejuizosManuaisList = [];
+    window.statusDarfMap = JSON.parse(localStorage.getItem('cockpit_status_darf_v1') || '{}');
+
+    function dataParaTimestamp(dataStr) {
+        if (!dataStr) return 0;
+        const partes = dataStr.split('/');
+        if (partes.length === 3) {
+            return parseInt(partes[2] + partes[1].padStart(2, '0') + partes[0].padStart(2, '0'), 10);
+        }
+        return 0;
+    }
+
+    function extrairDataDoNomeArquivo(nome) {
+        if (!nome) return 0;
+        const match = nome.match(/(\d{2})[-_](\d{2})[-_](\d{2,4})/);
+        if (match) {
+            let dia = match[1];
+            let mes = match[2];
+            let ano = match[3];
+            if (ano.length === 2) ano = '20' + ano;
+            return parseInt(ano + mes + dia, 10);
+        }
+        return 0;
+    }
+
+    window.obterMesAnoSelecionado = function() {
+        const mes = document.getElementById('selectMesApuracao').value;
+        const ano = document.getElementById('selectAnoApuracao').value;
+        if (!mes || !ano) return null;
+        return `${ano}-${mes}`;
+    };
+
+    window.atualizarMesAnoCustomizado = function() {
+        window.recalcularApuracaoIR();
+    };
+
+    window.toggleStatusDarf = function(mesAnoParam) {
+        const mesAno = mesAnoParam || window.obterMesAnoSelecionado();
+        if (!mesAno) return;
+        window.statusDarfMap[mesAno] = !window.statusDarfMap[mesAno];
+        localStorage.setItem('cockpit_status_darf_v1', JSON.stringify(window.statusDarfMap));
+        
+        window.recalcularApuracaoIR();
+        window.renderizarTabelaPrejuizos();
+        window.renderizarTotaisGerais();
+    };
+
+    window.mudarAbaIr = function(aba) {
+        document.getElementById('conteudoAbaApuracao').classList.add('hidden');
+        document.getElementById('conteudoAbaPrejuizos').classList.add('hidden');
+        document.getElementById('conteudoAbaTotais').classList.add('hidden');
+        document.getElementById('conteudoAbaConciliacao').classList.add('hidden');
+
+        document.getElementById('btnAbaApuracao').className = "pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition flex items-center gap-2 whitespace-nowrap";
+        document.getElementById('btnAbaPrejuizos').className = "pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition flex items-center gap-2 whitespace-nowrap";
+        document.getElementById('btnAbaTotais').className = "pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition flex items-center gap-2 whitespace-nowrap";
+        document.getElementById('btnAbaConciliacao').className = "pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition flex items-center gap-2 whitespace-nowrap";
+
+        const boxSeletor = document.getElementById('boxSeletorApuracao');
+
+        if (aba === 'apuracao') {
+            document.getElementById('conteudoAbaApuracao').classList.remove('hidden');
+            document.getElementById('btnAbaApuracao').className = "pb-3 border-b-2 border-amber-500 text-amber-400 transition flex items-center gap-2 whitespace-nowrap";
+            if (boxSeletor) boxSeletor.classList.remove('hidden');
+            window.recalcularApuracaoIR();
+        } else if (aba === 'prejuizos') {
+            document.getElementById('conteudoAbaPrejuizos').classList.remove('hidden');
+            document.getElementById('btnAbaPrejuizos').className = "pb-3 border-b-2 border-amber-500 text-amber-400 transition flex items-center gap-2 whitespace-nowrap";
+            if (boxSeletor) boxSeletor.classList.add('hidden');
+            window.carregarPrejuizos();
+        } else if (aba === 'totais') {
+            document.getElementById('conteudoAbaTotais').classList.remove('hidden');
+            document.getElementById('btnAbaTotais').className = "pb-3 border-b-2 border-amber-500 text-amber-400 transition flex items-center gap-2 whitespace-nowrap";
+            if (boxSeletor) boxSeletor.classList.add('hidden');
+            window.renderizarTotaisGerais();
+        } else if (aba === 'conciliacao') {
+            document.getElementById('conteudoAbaConciliacao').classList.remove('hidden');
+            document.getElementById('btnAbaConciliacao').className = "pb-3 border-b-2 border-amber-500 text-amber-400 transition flex items-center gap-2 whitespace-nowrap";
+            if (boxSeletor) boxSeletor.classList.add('hidden');
+            window.carregarHistorico();
+        }
+    };
+
+    // MODAL PREJUÍZO MANUAL
+    window.abrirModalPrejuizo = function() {
+        document.getElementById('modalAddPrejuizo').classList.remove('hidden');
+    };
+
+    window.fecharModalPrejuizo = function() {
+        document.getElementById('modalAddPrejuizo').classList.add('hidden');
+    };
+
+    window.salvarPrejuizoManual = async function() {
+        const mesAno = document.getElementById('inputPrejuizoMesAno').value;
+        const valor = parseFloat(document.getElementById('inputPrejuizoValor').value);
+        const obs = document.getElementById('inputPrejuizoObs').value;
+
+        if (!mesAno || isNaN(valor) || valor <= 0) {
+            alert("Por favor, informe um mês/ano e um valor válido superior a zero.");
+            return;
+        }
+
+        try {
+            await fetch('/api/fiscal/salvar-prejuizo-manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mes_ano: mesAno, valor: valor, observacao: obs })
+            });
+            window.fecharModalPrejuizo();
+            document.getElementById('inputPrejuizoValor').value = '';
+            document.getElementById('inputPrejuizoObs').value = '';
+            await window.carregarPrejuizos();
+        } catch(e) {
+            console.error("Erro ao salvar prejuízo manual:", e);
+            alert("Erro ao conectar com o servidor.");
+        }
+    };
+
+    window.deletarPrejuizoManual = async function(id) {
+        if (!confirm("Deseja realmente remover este lançamento manual de prejuízo?")) return;
+        try {
+            await fetch('/api/fiscal/deletar-prejuizo-manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            });
+            await window.carregarPrejuizos();
+        } catch(e) {
+            console.error("Erro ao deletar prejuízo:", e);
+        }
+    };
+
+    window.carregarPrejuizos = async function() {
+        try {
+            const [respHist, respMan] = await Promise.all([
+                fetch('/api/fiscal/historico'),
+                fetch('/api/fiscal/prejuizos-manuais')
+            ]);
+            const dataHist = await respHist.json();
+            const dataMan = await respMan.json();
+
+            window.arquivosPdfHistorico = dataHist.historico || [];
+            window.prejuizosManuaisList = dataMan.prejuizos || [];
+        } catch(e) {
+            console.error("Erro ao carregar dados de prejuízos:", e);
+        }
+
+        window.renderizarTabelaPrejuizos();
+        window.recalcularApuracaoIR();
+        window.renderizarTotaisGerais();
+    };
+
+    // RENDERIZA A TABELA DE HISTÓRICO COM LINHA DE TOTAIS NO TFOOT
+    window.renderizarTabelaPrejuizos = function() {
+        const tbody = document.getElementById('corpoTabelaPrejuizos');
+        const tfoot = document.getElementById('rodapeTabelaPrejuizos');
+        if (!tbody || !tfoot) return;
+
+        const filtroOrigem = document.getElementById('filtroPrejuizoOrigem').value;
+        const filtroAno = document.getElementById('filtroPrejuizoAno').value;
+
+        const resPorMesPdf = {};
+        const despesasPorMesPdf = {};
+        const irrfPorMesPdf = {};
+
+        window.arquivosPdfHistorico.forEach(arq => {
+            if (arq.notas) {
+                arq.notas.forEach(n => {
+                    if (n.data) {
+                        const partes = n.data.split('/');
+                        if (partes.length === 3) {
+                            const mesAno = `${partes[2]}-${partes[1].padStart(2, '0')}`;
+                            const bruto = Number(n.valor_negocios || 0);
+                            const desp = Number(n.total_despesas || n.taxas || 0);
+                            const irrf = Number(n.irrf || 0);
+
+                            resPorMesPdf[mesAno] = (resPorMesPdf[mesAno] || 0) + (bruto - desp);
+                            despesasPorMesPdf[mesAno] = (despesasPorMesPdf[mesAno] || 0) + desp;
+                            irrfPorMesPdf[mesAno] = (irrfPorMesPdf[mesAno] || 0) + irrf;
+                        }
+                    }
+                });
+            }
+        });
+
+        const todosMesesSet = new Set([...Object.keys(resPorMesPdf), ...window.prejuizosManuaisList.map(p => p.mes_ano)]);
+        const mesesOrdenados = Array.from(todosMesesSet).sort();
+
+        let acumuladoPrejuizoAnterior = 0;
+        let irrfAcumuladoAnoAtual = 0;
+        let anoCorrenteAux = "";
+
+        const listaFinalRender = [];
+
+        mesesOrdenados.forEach(mesAno => {
+            const [anoItem, mesItem] = mesAno.split('-');
+            
+            if (anoItem !== anoCorrenteAux) {
+                irrfAcumuladoAnoAtual = 0;
+                anoCorrenteAux = anoItem;
+            }
+
+            const manual = window.prejuizosManuaisList.find(p => p.mes_ano === mesAno);
+            const valPdf = resPorMesPdf[mesAno];
+            const irrfMes = irrfPorMesPdf[mesAno] || 0;
+
+            let resLiquidoMes = 0;
+            let origem = "importado";
+            let itemManualId = null;
+
+            if (manual) {
+                resLiquidoMes = manual.valor;
+                origem = "manual";
+                itemManualId = manual.id;
+            } else if (valPdf !== undefined) {
+                resLiquidoMes = valPdf;
+                origem = "importado";
+            }
+
+            irrfAcumuladoAnoAtual += irrfMes;
+            const irrfAcumuladoDisponivel = irrfAcumuladoAnoAtual;
+
+            const prejuizoAnterior = acumuladoPrejuizoAnterior;
+            let baseCalculo = 0;
+            let saldoPrejuizoTransportar = 0;
+            let irDevido = 0;
+            let darfPagar = 0;
+            let irrfAbatidoNoMes = 0;
+
+            if (resLiquidoMes < 0) {
+                saldoPrejuizoTransportar = prejuizoAnterior + Math.abs(resLiquidoMes);
+                acumuladoPrejuizoAnterior = saldoPrejuizoTransportar;
+                baseCalculo = 0;
+                irDevido = 0;
+                darfPagar = 0;
+            } else {
+                if (prejuizoAnterior > 0) {
+                    if (resLiquidoMes >= prejuizoAnterior) {
+                        baseCalculo = resLiquidoMes - prejuizoAnterior;
+                        saldoPrejuizoTransportar = 0;
+                        acumuladoPrejuizoAnterior = 0;
+                    } else {
+                        baseCalculo = 0;
+                        saldoPrejuizoTransportar = prejuizoAnterior - resLiquidoMes;
+                        acumuladoPrejuizoAnterior = saldoPrejuizoTransportar;
+                    }
+                } else {
+                    baseCalculo = resLiquidoMes;
+                    saldoPrejuizoTransportar = 0;
+                    acumuladoPrejuizoAnterior = 0;
+                }
+
+                irDevido = baseCalculo * 0.20;
+                
+                if (irDevido > 0) {
+                    irrfAbatidoNoMes = Math.min(irDevido, irrfAcumuladoDisponivel);
+                    darfPagar = Math.max(0, irDevido - irrfAbatidoNoMes);
+                    irrfAcumuladoAnoAtual -= irrfAbatidoNoMes;
+                }
+            }
+
+            const mesNome = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"][parseInt(mesItem, 10) - 1];
+
+            const passaOrigem = (filtroOrigem === 'todas') || (filtroOrigem === origem);
+            const passaAno = (filtroAno === 'todos') || (filtroAno === anoItem);
+
+            if (passaOrigem && passaAno) {
+                listaFinalRender.unshift({
+                    mesAno: mesAno,
+                    mesAnoExt: `${mesNome} / ${anoItem}`,
+                    origem: origem,
+                    resLiquidoMes: resLiquidoMes,
+                    prejuizoAnterior: prejuizoAnterior,
+                    baseCalculo: baseCalculo,
+                    saldoPrejuizoTransportar: saldoPrejuizoTransportar,
+                    irDevido: irDevido,
+                    irrfMes: irrfMes,
+                    irrfAcumuladoDisponivel: irrfAcumuladoDisponivel,
+                    darfPagar: darfPagar,
+                    manualId: itemManualId
+                });
+            }
+        });
+
+        if (listaFinalRender.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-gray-500">Nenhum histórico de apuração encontrado para os filtros selecionados.</td></tr>`;
+            tfoot.innerHTML = "";
+            return;
+        }
+
+        let somaResLiquido = 0;
+        let somaIrDevido = 0;
+        let somaIrrfMes = 0;
+        let somaDarfPagar = 0;
+
+        listaFinalRender.forEach(i => {
+            somaResLiquido += i.resLiquidoMes;
+            somaIrDevido += i.irDevido;
+            somaIrrfMes += i.irrfMes;
+            somaDarfPagar += i.darfPagar;
+        });
+
+        tbody.innerHTML = listaFinalRender.map(item => {
+            const estaPago = !!window.statusDarfMap[item.mesAno];
+
+            let statusBadgeHtml = "";
+            if (item.resLiquidoMes < 0) {
+                statusBadgeHtml = `<span class="text-[10px] px-2 py-0.5 rounded bg-blue-950/40 text-blue-400 border border-blue-900 font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-shield-halved"></i> Sem Débito (Prejuízo)</span>`;
+            } else if (item.baseCalculo === 0 && item.prejuizoAnterior > 0) {
+                statusBadgeHtml = `<span class="text-[10px] px-2 py-0.5 rounded bg-blue-950/40 text-blue-400 border border-blue-900 font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-check-double"></i> Sem Débito (Abatido)</span>`;
+            } else if (item.darfPagar > 0 && item.darfPagar < 10) {
+                statusBadgeHtml = `<span class="text-[10px] px-2 py-0.5 rounded bg-amber-950/40 text-amber-400 border border-amber-900 font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-layer-group"></i> Acumular (&lt; R$10)</span>`;
+            } else if (item.darfPagar >= 10) {
+                statusBadgeHtml = `
+                    <button onclick="toggleStatusDarf('${item.mesAno}')" class="px-2 py-0.5 rounded text-[10px] font-bold border transition flex items-center justify-center gap-1 mx-auto ${estaPago ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800' : 'bg-red-950/40 text-red-400 border-red-900 hover:bg-red-900/60'}">
+                        <i class="fa-solid ${estaPago ? 'fa-check-circle' : 'fa-clock'}"></i>
+                        ${estaPago ? 'Paga (Cód 6015)' : 'Gerar DARF'}
+                    </button>
+                `;
+            } else {
+                statusBadgeHtml = `<span class="text-[10px] px-2 py-0.5 rounded bg-blue-950/40 text-blue-400 border border-blue-900 font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-circle-check"></i> Sem Débito</span>`;
+            }
+
+            return `
+                <tr class="hover:bg-gray-800/40 transition">
+                    <td class="py-3 px-2 text-center text-white font-bold">
+                        ${item.mesAnoExt}
+                        <div class="text-[9px] font-normal ${item.origem === 'manual' ? 'text-blue-400' : 'text-purple-400'}">${item.origem === 'manual' ? 'Manual' : 'Importado'}</div>
+                    </td>
+                    <td class="py-3 px-2 text-right font-bold ${item.resLiquidoMes < 0 ? 'text-red-400' : 'text-emerald-400'}">
+                        R$ ${item.resLiquidoMes.toFixed(2)}
+                    </td>
+                    <td class="py-3 px-2 text-right text-red-400 font-bold">
+                        R$ ${item.prejuizoAnterior > 0 ? '-' : ''}${item.prejuizoAnterior.toFixed(2)}
+                    </td>
+                    <td class="py-3 px-2 text-right text-amber-400 font-bold">
+                        R$ ${item.baseCalculo.toFixed(2)}
+                    </td>
+                    <td class="py-3 px-2 text-right text-red-300 font-bold">
+                        R$ ${item.saldoPrejuizoTransportar > 0 ? '-' : ''}${item.saldoPrejuizoTransportar.toFixed(2)}
+                    </td>
+                    <td class="py-3 px-2 text-right text-white">
+                        R$ ${item.irDevido.toFixed(2)}
+                    </td>
+                    <td class="py-3 px-2 text-right text-amber-400">
+                        R$ ${item.irrfMes.toFixed(2)}
+                    </td>
+                    <td class="py-3 px-2 text-right font-bold text-amber-300">
+                        R$ ${item.irrfAcumuladoDisponivel.toFixed(2)}
+                    </td>
+                    <td class="py-3 px-2 text-right font-bold text-emerald-400">
+                        R$ ${item.darfPagar.toFixed(2)}
+                    </td>
+                    <td class="py-3 px-2 text-center">
+                        ${statusBadgeHtml}
+                        ${item.manualId ? `
+                            <button onclick="deletarPrejuizoManual('${item.manualId}')" class="text-red-400 hover:text-red-300 ml-2" title="Excluir Lançamento Manual">
+                                <i class="fa-solid fa-trash-can text-[11px]"></i>
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        tfoot.innerHTML = `
+            <tr>
+                <td class="py-3 px-2 text-center uppercase font-bold text-amber-400">TOTAIS NO PERÍODO</td>
+                <td class="py-3 px-2 text-right font-bold ${somaResLiquido < 0 ? 'text-red-400' : 'text-emerald-400'}">R$ ${somaResLiquido.toFixed(2)}</td>
+                <td class="py-3 px-2 text-right">—</td>
+                <td class="py-3 px-2 text-right">—</td>
+                <td class="py-3 px-2 text-right">—</td>
+                <td class="py-3 px-2 text-right text-white">R$ ${somaIrDevido.toFixed(2)}</td>
+                <td class="py-3 px-2 text-right text-amber-400">R$ ${somaIrrfMes.toFixed(2)}</td>
+                <td class="py-3 px-2 text-right">—</td>
+                <td class="py-3 px-2 text-right font-bold text-emerald-400">R$ ${somaDarfPagar.toFixed(2)}</td>
+                <td class="py-3 px-2 text-center">—</td>
+            </tr>
+        `;
+    };
+
+    window.renderizarTotaisGerais = function() {
+        const anoFiltro = document.getElementById('filtroAnoConsolidado').value;
+
+        let totalBruto = 0;
+        let totalDespesas = 0;
+        let totalPrejuizoComp = 0;
+        let totalImpostoDevido = 0;
+        let totalIrrf = 0;
+        let totalDarfPagar = 0;
+
+        window.arquivosPdfHistorico.forEach(arq => {
+            if (arq.notas) {
+                arq.notas.forEach(n => {
+                    if (n.data) {
+                        const partes = n.data.split('/');
+                        if (partes.length === 3) {
+                            const anoItem = partes[2];
+                            if (anoFiltro === 'todos' || anoItem === anoFiltro) {
+                                const bruto = Number(n.valor_negocios || 0);
+                                const desp = Number(n.total_despesas || n.taxas || 0);
+                                const irrf = Number(n.irrf || 0);
+
+                                totalBruto += bruto;
+                                totalDespesas += desp;
+                                totalIrrf += irrf;
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        const todosMesesSet = new Set(window.arquivosPdfHistorico.flatMap(a => (a.notas || []).map(n => {
+            const p = n.data.split('/');
+            return p.length === 3 ? `${p[2]}-${p[1].padStart(2, '0')}` : null;
+        }).filter(Boolean)));
+        
+        window.prejuizosManuaisList.forEach(p => todosMesesSet.add(p.mes_ano));
+        const mesesOrdenados = Array.from(todosMesesSet).sort();
+
+        let acumuladoPrejuizoAnterior = 0;
+        let irrfAcumuladoAnoAtual = 0;
+        let anoCorrenteAux = "";
+
+        mesesOrdenados.forEach(mesAno => {
+            const [anoItem, mesItem] = mesAno.split('-');
+            if (anoItem !== anoCorrenteAux) {
+                irrfAcumuladoAnoAtual = 0;
+                anoCorrenteAux = anoItem;
+            }
+
+            if (anoFiltro !== 'todos' && anoItem !== anoFiltro) return;
+
+            let brutoMes = 0;
+            let despMes = 0;
+            let irrfMes = 0;
+
+            window.arquivosPdfHistorico.forEach(arq => {
+                if (arq.notas) {
+                    arq.notas.forEach(n => {
+                        if (n.data) {
+                            const p = n.data.split('/');
+                            if (p.length === 3 && `${p[2]}-${p[1].padStart(2, '0')}` === mesAno) {
+                                brutoMes += Number(n.valor_negocios || 0);
+                                despMes += Number(n.total_despesas || n.taxas || 0);
+                                irrfMes += Number(n.irrf || 0);
+                            }
+                        }
+                    });
+                }
+            });
+
+            const manual = window.prejuizosManuaisList.find(p => p.mes_ano === mesAno);
+            let resLiquidoMes = brutoMes - despMes;
+            if (manual) resLiquidoMes = manual.valor;
+
+            irrfAcumuladoAnoAtual += irrfMes;
+            const prejuizoAnterior = acumuladoPrejuizoAnterior;
+            let compensadoMes = 0;
+            let baseCalculo = 0;
+            let irDevido = 0;
+            let darfPagar = 0;
+
+            if (resLiquidoMes < 0) {
+                acumuladoPrejuizoAnterior += Math.abs(resLiquidoMes);
+            } else {
+                if (prejuizoAnterior > 0) {
+                    if (resLiquidoMes >= prejuizoAnterior) {
+                        compensadoMes = prejuizoAnterior;
+                        baseCalculo = resLiquidoMes - prejuizoAnterior;
+                        acumuladoPrejuizoAnterior = 0;
+                    } else {
+                        compensadoMes = resLiquidoMes;
+                        baseCalculo = 0;
+                        acumuladoPrejuizoAnterior = prejuizoAnterior - resLiquidoMes;
+                    }
+                } else {
+                    baseCalculo = resLiquidoMes;
+                    acumuladoPrejuizoAnterior = 0;
+                }
+
+                irDevido = baseCalculo * 0.20;
+                const abat = Math.min(irDevido, irrfAcumuladoAnoAtual);
+                darfPagar = Math.max(0, irDevido - abat);
+                irrfAcumuladoAnoAtual -= abat;
+            }
+
+            totalPrejuizoComp += compensadoMes;
+            totalImpostoDevido += irDevido;
+            totalDarfPagar += darfPagar;
+        });
+
+        const resLiquidoTotal = totalBruto - totalDespesas;
+
+        document.getElementById('totResLiquido').textContent = `R$ ${resLiquidoTotal.toFixed(2)}`;
+        document.getElementById('totImpostoDevido').textContent = `R$ ${totalImpostoDevido.toFixed(2)}`;
+        document.getElementById('totIrrfRetido').textContent = `R$ ${totalIrrf.toFixed(2)}`;
+        document.getElementById('totDarfRecolhida').textContent = `R$ ${totalDarfPagar.toFixed(2)}`;
+
+        document.getElementById('resConsBruto').textContent = `R$ ${totalBruto.toFixed(2)}`;
+        document.getElementById('resConsDespesas').textContent = `R$ ${totalDespesas.toFixed(2)}`;
+        document.getElementById('resConsLiquido').textContent = `R$ ${resLiquidoTotal.toFixed(2)}`;
+        document.getElementById('resConsPrejuizoComp').textContent = `R$ ${totalPrejuizoComp.toFixed(2)}`;
+        document.getElementById('resConsImpDevido').textContent = `R$ ${totalImpostoDevido.toFixed(2)}`;
+        document.getElementById('resConsIrrf').textContent = `R$ ${totalIrrf.toFixed(2)}`;
+        document.getElementById('resConsDarfPagar').textContent = `R$ ${totalDarfPagar.toFixed(2)}`;
+    };
+
+    window.recalcularApuracaoIR = function() {
+        const mesAnoSelecionado = window.obterMesAnoSelecionado();
+        const containerBtnStatus = document.getElementById('btnStatusDarf');
+
+        if (!mesAnoSelecionado) {
+            document.getElementById('irResLiquidoMes').textContent = "Selecione Mês/Ano";
+            document.getElementById('irPrejuizoCompensado').textContent = "Selecione Mês/Ano";
+            document.getElementById('irRetidoFonte').textContent = "Selecione Mês/Ano";
+            document.getElementById('irDarfPagar').textContent = "Selecione Mês/Ano";
+
+            document.getElementById('detResBrutoOp').textContent = "R$ 0,00";
+            document.getElementById('detPrejuizoAnt').textContent = "R$ 0,00";
+            document.getElementById('detResBrutoApósComp').textContent = "R$ 0,00";
+            document.getElementById('detSomaDespesas').textContent = "R$ 0,00";
+            document.getElementById('detBaseCalculo').textContent = "R$ 0,00";
+            document.getElementById('detImpostoDevido').textContent = "R$ 0,00";
+            document.getElementById('detDedoDuro').textContent = "R$ 0,00";
+            document.getElementById('detTotalDarf').textContent = "R$ 0,00";
+
+            if (containerBtnStatus) {
+                containerBtnStatus.innerHTML = `<span class="px-3 py-1 rounded-lg text-xs font-bold font-mono border bg-gray-800 text-gray-500 border-gray-700">Selecione Mês/Ano</span>`;
+            }
+            return;
+        }
+
+        let brutoMes = 0;
+        let despesasMes = 0;
+        let irrfMes = 0;
+
+        window.arquivosPdfHistorico.forEach(arq => {
+            if (arq.notas) {
+                arq.notas.forEach(n => {
+                    if (n.data) {
+                        const partes = n.data.split('/');
+                        if (partes.length === 3) {
+                            const anoMesNota = `${partes[2]}-${partes[1].padStart(2, '0')}`;
+                            if (anoMesNota === mesAnoSelecionado) {
+                                brutoMes += Number(n.valor_negocios || 0);
+                                despesasMes += Number(n.total_despesas || n.taxas || 0);
+                                irrfMes += Number(n.irrf || 0);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        const resPorMesPdf = {};
+        const irrfPorMesPdf = {};
+        window.arquivosPdfHistorico.forEach(arq => {
+            if (arq.notas) {
+                arq.notas.forEach(n => {
+                    if (n.data) {
+                        const partes = n.data.split('/');
+                        if (partes.length === 3) {
+                            const mesAno = `${partes[2]}-${partes[1].padStart(2, '0')}`;
+                            const liqSemIrrf = Number(n.valor_negocios || 0) - Number(n.total_despesas || 0);
+                            resPorMesPdf[mesAno] = (resPorMesPdf[mesAno] || 0) + liqSemIrrf;
+                            irrfPorMesPdf[mesAno] = (irrfPorMesPdf[mesAno] || 0) + Number(n.irrf || 0);
+                        }
+                    }
+                });
+            }
+        });
+
+        const todosMesesSet = new Set([...Object.keys(resPorMesPdf), ...window.prejuizosManuaisList.map(p => p.mes_ano)]);
+        const mesesOrdenados = Array.from(todosMesesSet).sort();
+
+        let saldoAcumuladoPrejuizo = 0;
+        let prejuizoCompensadoNoMes = 0;
+        let irrfAcumuladoAnoAtual = 0;
+        let irrfAbatidoNoMesSel = 0;
+        let anoCorrenteAux = "";
+
+        mesesOrdenados.forEach(mesAno => {
+            const [anoItem] = mesAno.split('-');
+            if (anoItem !== anoCorrenteAux) {
+                irrfAcumuladoAnoAtual = 0;
+                anoCorrenteAux = anoItem;
+            }
+
+            const manual = window.prejuizosManuaisList.find(p => p.mes_ano === mesAno);
+            const valPdf = resPorMesPdf[mesAno];
+            const iMes = irrfPorMesPdf[mesAno] || 0;
+
+            let resMes = 0;
+            if (manual) {
+                resMes = manual.valor;
+            } else if (valPdf !== undefined) {
+                resMes = valPdf;
+            }
+
+            irrfAcumuladoAnoAtual += iMes;
+
+            let compensadoMes = 0;
+            if (resMes < 0) {
+                saldoAcumuladoPrejuizo += Math.abs(resMes);
+            } else if (resMes > 0 && saldoAcumuladoPrejuizo > 0) {
+                compensadoMes = Math.min(resMes, saldoAcumuladoPrejuizo);
+                saldoAcumuladoPrejuizo -= compensadoMes;
+            }
+
+            const baseCalcItem = Math.max(0, resMes - compensadoMes);
+            const impDevItem = baseCalcItem * 0.20;
+            const abatItem = Math.min(impDevItem, irrfAcumuladoAnoAtual);
+            irrfAcumuladoAnoAtual -= abatItem;
+
+            if (mesAno === mesAnoSelecionado) {
+                prejuizoCompensadoNoMes = compensadoMes;
+                irrfAbatidoNoMesSel = abatItem > 0 ? abatItem : iMes;
+            }
+        });
+
+        const resBrutoAposComp = Math.max(0, brutoMes - prejuizoCompensadoNoMes);
+        const baseCalculo = Math.max(0, resBrutoAposComp - despesasMes);
+        const impostoDevido = baseCalculo * 0.20;
+        const darfPagar = Math.max(0, impostoDevido - irrfAbatidoNoMesSel);
+        const resLiquidoFinalMes = brutoMes - despesasMes - irrfMes;
+
+        document.getElementById('irResLiquidoMes').textContent = `R$ ${resLiquidoFinalMes.toFixed(2)}`;
+        document.getElementById('irPrejuizoCompensado').textContent = `R$ ${prejuizoCompensadoNoMes.toFixed(2)}`;
+        document.getElementById('irRetidoFonte').textContent = `R$ ${irrfMes.toFixed(2)}`;
+        document.getElementById('irDarfPagar').textContent = `R$ ${darfPagar.toFixed(2)}`;
+
+        document.getElementById('detResBrutoOp').textContent = `R$ ${brutoMes.toFixed(2)}`;
+        document.getElementById('detPrejuizoAnt').textContent = `R$ ${prejuizoCompensadoNoMes.toFixed(2)}`;
+        document.getElementById('detResBrutoApósComp').textContent = `R$ ${resBrutoAposComp.toFixed(2)}`;
+        document.getElementById('detSomaDespesas').textContent = `R$ ${despesasMes.toFixed(2)}`;
+        document.getElementById('detBaseCalculo').textContent = `R$ ${baseCalculo.toFixed(2)}`;
+        document.getElementById('detImpostoDevido').textContent = `R$ ${impostoDevido.toFixed(2)}`;
+        document.getElementById('detDedoDuro').textContent = `R$ ${irrfAbatidoNoMesSel.toFixed(2)}`;
+        document.getElementById('detTotalDarf').textContent = `R$ ${darfPagar.toFixed(2)}`;
+
+        if (containerBtnStatus) {
+            if (darfPagar === 0) {
+                if (resLiquidoFinalMes < 0) {
+                    containerBtnStatus.innerHTML = `<span class="px-3 py-1 rounded-lg text-xs font-bold font-mono border bg-blue-950/60 text-blue-400 border-blue-900 flex items-center gap-1.5"><i class="fa-solid fa-shield-halved"></i> Sem Débito (Prejuízo)</span>`;
+                } else {
+                    containerBtnStatus.innerHTML = `<span class="px-3 py-1 rounded-lg text-xs font-bold font-mono border bg-blue-950/60 text-blue-400 border-blue-900 flex items-center gap-1.5"><i class="fa-solid fa-check-double"></i> Sem Débito (Isento/Abatido)</span>`;
+                }
+            } else if (darfPagar > 0 && darfPagar < 10) {
+                containerBtnStatus.innerHTML = `<span class="px-3 py-1 rounded-lg text-xs font-bold font-mono border bg-amber-950/60 text-amber-400 border-amber-900 flex items-center gap-1.5"><i class="fa-solid fa-layer-group"></i> Acumular (< R$10)</span>`;
+            } else {
+                const estaPago = !!window.statusDarfMap[mesAnoSelecionado];
+                containerBtnStatus.innerHTML = `
+                    <button onclick="toggleStatusDarf()" class="px-3 py-1 rounded-lg text-xs font-bold font-mono border transition flex items-center gap-1.5 ${estaPago ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800 hover:bg-emerald-900/80 cursor-pointer' : 'bg-red-950/40 text-red-400 border-red-900 hover:bg-red-900/60 cursor-pointer'}">
+                        <i class="fa-solid ${estaPago ? 'fa-circle-check text-emerald-400' : 'fa-circle-xmark text-red-400'}"></i>
+                        ${estaPago ? 'Paga / Recolhida (Cód 6015)' : 'Pendente (Gerar DARF)'}
+                    </button>
+                `;
+            }
+        }
+    };
+
+    window.carregarHistorico = async function() {
+        try {
+            const resp = await fetch('/api/fiscal/historico');
+            const data = await resp.json();
+            window.arquivosPdfHistorico = data.historico || [];
+        } catch(e) {
+            window.arquivosPdfHistorico = [];
+        }
+
+        const tbody = document.getElementById('tabelaArquivosHistoricoCorpo');
+        if (!tbody) return;
+
+        if (window.arquivosPdfHistorico.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-gray-500">Nenhum PDF importado.</td></tr>`;
+            document.getElementById('resultadoConciliacaoContainer').classList.add('hidden');
+            window.atualizarCardsConciliacao([]);
+            return;
+        }
+
+        const arquivosMapeados = window.arquivosPdfHistorico.map((arq, originalIdx) => {
+            let timestampMax = 0;
+            if (arq.notas && arq.notas.length > 0) {
+                arq.notas.forEach(n => {
+                    const ts = dataParaTimestamp(n.data);
+                    if (ts > timestampMax) timestampMax = ts;
+                });
+            }
+            if (timestampMax === 0) {
+                timestampMax = extrairDataDoNomeArquivo(arq.nome);
+            }
+            return { ...arq, originalIdx, timestampMax };
+        });
+
+        arquivosMapeados.sort((a, b) => b.timestampMax - a.timestampMax);
+
+        tbody.innerHTML = arquivosMapeados.map(arq => `
+            <tr class="hover:bg-gray-800/40 transition">
+                <td class="py-2 px-2 text-center">
+                    <input type="checkbox" ${arq.selecionado !== false ? 'checked' : ''} onchange="toggleArquivo(${arq.originalIdx})" class="rounded bg-gray-950 text-amber-500 cursor-pointer">
+                </td>
+                <td class="py-2 text-white truncate max-w-[150px]">${arq.nome}</td>
+                <td class="py-2 text-center text-white font-bold">${arq.notas ? arq.notas.length : 0}</td>
+                <td class="py-2 text-right text-white">R$ ${(arq.notas || []).reduce((acc,n)=>acc+Number(n.irrf||0),0).toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        window.atualizarDetalhes();
+        window.carregarPrejuizos();
+    };
+
+    window.toggleArquivo = async function(idx) {
+        try {
+            await fetch('/api/fiscal/toggle-arquivo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ index: idx })
+            });
+            await window.carregarHistorico();
+        } catch(e) {
+            console.error("Erro ao alternar seleção:", e);
+        }
+    };
+
+    window.marcarTodas = async function(status) {
+        try {
+            await fetch('/api/fiscal/marcar-todas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: status })
+            });
+            await window.carregarHistorico();
+        } catch(e) {
+            console.error("Erro ao alterar todas as seleções:", e);
+        }
+    };
+
+    window.atualizarCardsConciliacao = function(notasAtivas) {
+        let somaValNegocios = 0;
+        let somaTaxas = 0;
+        let somaIr = 0;
+        let somaLiquidoNota = 0;
+
+        if (notasAtivas && notasAtivas.length > 0) {
+            notasAtivas.forEach(n => {
+                const valNegoc = Number(n.valor_negocios || 0);
+                const totalDesp = Number(n.total_despesas || n.taxas || 0);
+                const irrfVal = Number(n.irrf || 0);
+                const taxasLiquidas = Math.max(0, totalDesp - irrfVal);
+                
+                // CORREÇÃO: Líquido da nota = Val. Negócios - Taxas - IRRF
+                const liqVal = valNegoc - taxasLiquidas - irrfVal;
+
+                somaValNegocios += valNegoc;
+                somaTaxas += taxasLiquidas;
+                somaIr += irrfVal;
+                somaLiquidoNota += liqVal;
+            });
+        }
+
+        document.getElementById('concCardValorNegociado').textContent = `R$ ${somaValNegocios.toFixed(2)}`;
+        document.getElementById('concCardTaxas').textContent = `R$ ${somaTaxas.toFixed(2)}`;
+        document.getElementById('concCardIr').textContent = `R$ ${somaIr.toFixed(2)}`;
+        document.getElementById('concCardLiquidoNota').textContent = `R$ ${somaLiquidoNota.toFixed(2)}`;
+    };
+
+    window.atualizarDetalhes = function() {
+        const container = document.getElementById('resultadoConciliacaoContainer');
+        const tbody = document.getElementById('tabelaNotasProcessadasCorpo');
+        if (!container || !tbody) return;
+
+        let notasAtivas = [];
+        window.arquivosPdfHistorico.forEach(arq => {
+            if (arq.selecionado !== false && arq.notas) {
+                notasAtivas = [...notasAtivas, ...arq.notas];
+            }
+        });
+
+        // Atualiza os cards com base no filtro visual (arquivos marcados)
+        window.atualizarCardsConciliacao(notasAtivas);
+
+        if (notasAtivas.length === 0) {
+            container.classList.add('hidden');
+            return;
+        }
+
+        notasAtivas.sort((a, b) => dataParaTimestamp(b.data) - dataParaTimestamp(a.data));
+
+        container.classList.remove('hidden');
+        tbody.innerHTML = notasAtivas.map(n => {
+            const valNegoc = Number(n.valor_negocios || 0);
+            const totalDesp = Number(n.total_despesas || n.taxas || 0);
+            const irrfVal = Number(n.irrf || 0);
+            const taxasLiquidas = Math.max(0, totalDesp - irrfVal);
+            
+            // CORREÇÃO: Líquido por nota alinhado com a planilha (valNegoc - taxasLiquidas - irrfVal)
+            const liqVal = valNegoc - taxasLiquidas - irrfVal;
+
+            return `
+                <tr class="hover:bg-gray-800/40 font-mono">
+                    <td class="py-2.5 px-3 text-white font-bold">${n.data}</td>
+                    <td class="py-2.5 px-3 text-white font-bold">#${n.nota}</td>
+                    <td class="py-2.5 px-3 text-gray-300">${n.corretora}</td>
+                    <td class="py-2.5 px-3 text-gray-300">${n.mercado}</td>
+                    <td class="py-2.5 px-3 text-right ${valNegoc >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold">R$ ${valNegoc.toFixed(2)}</td>
+                    <td class="py-2.5 px-3 text-right text-white">R$ ${taxasLiquidas.toFixed(2)}</td>
+                    <td class="py-2.5 px-3 text-right text-white">R$ ${irrfVal.toFixed(2)}</td>
+                    <td class="py-2.5 px-3 text-right ${liqVal >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold">R$ ${liqVal.toFixed(2)}</td>
+                </tr>
+            `;
+        }).join('');
+    };
+
+    window.processarExtratoPdf = async function(event) {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        const modal = document.getElementById('modalLoadingPdf');
+        if (modal) modal.classList.remove('hidden');
+
+        try {
+            for (let file of files) {
+                const formData = new FormData();
+                formData.append("file", file);
+
+                await fetch('/api/fiscal/processar-pdf', {
+                    method: 'POST',
+                    body: formData
+                });
+            }
+
+            await window.carregarHistorico();
+        } catch (err) {
+            console.error("Erro ao enviar PDF:", err);
+            alert("Erro ao processar o arquivo PDF no servidor Python.");
+        } finally {
+            if (modal) modal.classList.add('hidden');
+            event.target.value = '';
+        }
+    };
+
+    window.limparHistoricoPdf = async function() {
+        if (!confirm("Deseja realmente apagar todo o histórico de PDFs do servidor?")) return;
+        try {
+            await fetch('/api/fiscal/limpar-historico', { method: 'POST' });
+            await window.carregarHistorico();
+        } catch(e) {
+            console.error("Erro ao limpar histórico:", e);
+        }
+    };
+
+    // Inicialização ao carregar a aba
+    window.carregarHistorico();
+</script>

@@ -1,0 +1,718 @@
+<!-- ========================================================================================= -->
+<!-- ARQUIVO: frontend/views/Trade/metas.html                                                  -->
+<!-- CONTEXTO: Conexão com FastAPI/SQLite para cálculo de Taxa Real e Resultado Atual         -->
+<!-- ========================================================================================= -->
+<div class="max-w-[96%] mx-auto space-y-5 pb-10">
+    <!-- Cabeçalho do Módulo -->
+    <div class="bg-gray-900 border border-gray-800 p-5 rounded-xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="flex items-center gap-2.5">
+                <span class="bg-amber-600/20 text-amber-400 border border-amber-500/30 p-2 rounded-lg text-sm">
+                    <i class="fa-solid fa-bullseye"></i>
+                </span>
+                <h1 class="text-base font-bold text-white tracking-wide">Módulo: Metas & Gestão de Risco</h1>
+                <span class="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded font-mono">metas.html</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Acompanhamento automatizado de metas e operações filtradas por conta.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button onclick="salvarMetasSazonais()" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition shadow">
+                <i class="fa-solid fa-floppy-disk"></i> Salvar Metas
+            </button>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: Matriz de Metas por Conta -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl shadow-xl overflow-hidden">
+        <div class="p-4 border-b border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gray-950">
+            <div class="flex items-center gap-2">
+                <span class="text-amber-400"><i class="fa-solid fa-calendar-alt"></i></span>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider" id="tituloMatrizMeta">Matriz Sazonal & Acompanhamento Real</h3>
+            </div>
+            
+            <div class="flex items-center gap-3 flex-wrap">
+                <!-- Seletor Global de Unidade -->
+                <div class="flex items-center gap-2" id="blocoUnidadeGlobal">
+                    <label class="text-[10px] text-gray-400 font-mono uppercase">Unidade:</label>
+                    <select id="selectUnidadeGlobal" onchange="renderizarMatrizSazonal()" class="bg-gray-900 border border-gray-700 text-xs text-amber-400 rounded px-2.5 py-1.5 font-mono outline-none focus:border-amber-500 font-semibold">
+                        <option value="BRL" selected>R$ (Reais)</option>
+                        <option value="PONTOS">Pts (Pontos)</option>
+                    </select>
+                </div>
+
+                <!-- Seletor de Base de Avaliação -->
+                <div class="flex items-center gap-2">
+                    <label class="text-[10px] text-gray-400 font-mono uppercase">Base:</label>
+                    <select id="selectBaseAvaliacao" onchange="renderizarMatrizSazonal(); processarTabelaAuditoria();" class="bg-gray-900 border border-gray-700 text-xs text-amber-400 rounded px-2.5 py-1.5 font-mono outline-none focus:border-amber-500 font-semibold">
+                        <option value="bruto">Bruto</option>
+                        <option value="liquido" selected>Líquido</option>
+                    </select>
+                </div>
+
+                <!-- Seletor de Conta -->
+                <div class="flex items-center gap-2">
+                    <label class="text-[10px] text-gray-400 font-mono uppercase">Conta / Mesa:</label>
+                    <select id="selectContaMeta" onchange="renderizarMatrizSazonal(); processarTabelaAuditoria();" class="bg-gray-900 border border-gray-700 text-xs text-white rounded px-2.5 py-1.5 font-mono outline-none focus:border-amber-500">
+                        <!-- Preenchido via JS -->
+                    </select>
+                </div>
+
+                <button onclick="alternarVisibilidadeMetasContas()" id="btnToggleMetasContas" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition border border-gray-700">
+                    <i class="fa-solid fa-eye-slash" id="iconeToggleMetas"></i> <span id="textoToggleMetas">Ocultar Tabela</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="containerTabelaMetasContas" class="p-5 space-y-4 transition-all duration-300">
+            <p id="descricaoModeloMeta" class="text-[11px] text-gray-400">Planejamento financeiro mensal e acompanhamento em tempo real.</p>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
+                    <thead id="tabelaCabecalho" class="bg-gray-950 text-gray-400 border-b border-gray-800 uppercase font-mono text-[10px]">
+                        <!-- Preenchido via JS -->
+                    </thead>
+                    <tbody id="tabelaMatrizSazonalCorpo" class="divide-y divide-gray-800 text-gray-300">
+                        <!-- Preenchido via JS -->
+                    </tbody>
+                    <tfoot id="tabelaMatrizSazonalRodape" class="bg-gray-950/90 border-t-2 border-gray-800 font-mono text-xs">
+                        <!-- Preenchido via JS -->
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Auditoria de Caixa Diário -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl shadow-xl overflow-hidden">
+        <div class="p-4 border-b border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gray-950">
+            <div>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-check text-amber-400"></i> Auditoria de Caixa Diário (Filtrado por Conta)
+                </h3>
+                <p class="text-[11px] text-gray-400 mt-0.5">Selecione um ou mais meses para exibir os resultados operacionais correspondentes.</p>
+            </div>
+
+            <div class="relative">
+                <button onclick="toggleDropdownMeses()" id="btnDropdownMeses" class="bg-gray-900 border border-gray-700 hover:border-amber-500 text-xs text-white rounded px-3 py-1.5 font-mono flex items-center gap-2 transition">
+                    <i class="fa-solid fa-calendar-days text-amber-400"></i> <span id="textoStatusMeses">Meses Selecionados</span> <i class="fa-solid fa-chevron-down text-[10px] text-gray-400"></i>
+                </button>
+
+                <div id="dropdownMesesMenu" class="hidden absolute right-0 mt-2 w-64 bg-gray-950 border border-gray-800 rounded-xl shadow-2xl p-3 z-30 space-y-2">
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-800 text-[11px] font-mono">
+                        <span class="text-gray-400 font-bold">Selecionar Meses:</span>
+                        <div class="flex gap-2">
+                            <button onclick="marcarTodosMeses(true)" class="text-amber-400 hover:underline">Todos</button>
+                            <span class="text-gray-600">|</span>
+                            <button onclick="marcarTodosMeses(false)" class="text-gray-400 hover:underline">Nenhum</button>
+                        </div>
+                    </div>
+                    
+                    <div id="listaCheckboxesMeses" class="space-y-1.5 max-h-56 overflow-y-auto pr-1 text-xs font-mono text-gray-300">
+                        <!-- Preenchido via JS -->
+                    </div>
+
+                    <button onclick="processarTabelaAuditoria()" class="w-full bg-amber-600 hover:bg-amber-500 text-white py-1.5 rounded-lg text-xs font-semibold mt-2 transition">
+                        Aplicar Filtro
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead class="bg-gray-950 text-gray-400 border-b border-gray-800 uppercase font-mono text-[10px]">
+                    <tr>
+                        <th class="py-3 px-4 font-semibold">Data</th>
+                        <th class="py-3 px-4 font-semibold text-center">Total de Operações</th>
+                        <th class="py-3 px-4 font-semibold text-center">Total de Contratos</th>
+                        <th class="py-3 px-4 font-semibold text-right">Resultado do Dia</th>
+                        <th class="py-3 px-4 font-semibold text-center">Status de Atingimento</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaAuditoriaCorpo" class="divide-y divide-gray-800 text-gray-300">
+                    <!-- Preenchido via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const KEY_CONTAS = 'cockpit_contas_completo';
+        const KEY_CALENDARIO = 'cockpit_calendario_customizacoes_v10';
+        const KEY_METAS_SAZONAIS = 'cockpit_metas_sazonais_v17';
+
+        const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const anoCorrente = 2026;
+        const dataHoje = new Date();
+        const mesAtualReal = dataHoje.getMonth();
+        const diaHojeReal = dataHoje.getDate();
+
+        let cacheTradesMemoria = [];
+
+        async function carregarTradesBackend() {
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/trades");
+                if (response.ok) {
+                    cacheTradesMemoria = await response.json();
+                }
+            } catch (err) {
+                console.error("Erro ao carregar trades da API:", err);
+            }
+        }
+
+        function limparLocalStorageAntigo() {
+            try {
+                const chavesParaRemover = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.includes('cockpit_metas_sazonais') || key.includes('cockpit_metas_sazonais_por_conta')) && key !== KEY_METAS_SAZONAIS) {
+                        chavesParaRemover.push(key);
+                    }
+                }
+                chavesParaRemover.forEach(k => localStorage.removeItem(k));
+            } catch(e) {}
+        }
+        limparLocalStorageAntigo();
+
+        function convNum(str) {
+            if (!str || (typeof str !== 'string' && typeof str !== 'number')) return 0;
+            let limpo = String(str).trim().replace(/[R$\s]/g, '');
+            if (limpo.includes(',') && limpo.includes('.')) {
+                limpo = limpo.replace(/\./g, '').replace(',', '.');
+            } else if (limpo.includes(',')) {
+                limpo = limpo.replace(',', '.');
+            }
+            const n = parseFloat(limpo);
+            return isNaN(n) ? 0 : n;
+        }
+
+        window.alternarVisibilidadeMetasContas = function() {
+            const container = document.getElementById('containerTabelaMetasContas');
+            const texto = document.getElementById('textoToggleMetas');
+            const icone = document.getElementById('iconeToggleMetas');
+            
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                texto.innerText = 'Ocultar Tabela';
+                icone.className = 'fa-solid fa-eye-slash';
+                localStorage.setItem('cockpit_ocultar_matriz_sazonal', 'false');
+            } else {
+                container.classList.add('hidden');
+                texto.innerText = 'Mostrar Tabela';
+                icone.className = 'fa-solid fa-eye';
+                localStorage.setItem('cockpit_ocultar_matriz_sazonal', 'true');
+            }
+        };
+
+        function verificarEstadoOculto() {
+            if (localStorage.getItem('cockpit_ocultar_matriz_sazonal') === 'true') {
+                const container = document.getElementById('containerTabelaMetasContas');
+                const texto = document.getElementById('textoToggleMetas');
+                const icone = document.getElementById('iconeToggleMetas');
+                if (container) container.classList.add('hidden');
+                if (texto) texto.innerText = 'Mostrar Tabela';
+                if (icone) icone.className = 'fa-solid fa-eye';
+            }
+        }
+
+        function carregarSelectContas() {
+            const select = document.getElementById('selectContaMeta');
+            if (!select) return;
+
+            let contas = [];
+            try { contas = JSON.parse(localStorage.getItem(KEY_CONTAS) || '[]'); } catch(e) {}
+
+            if (contas.length === 0) {
+                contas = [
+                    { id: '103050571', corretora: '5PI', tipo: 'Mesa', modeloMeta: 'sazonal', taxaWin: '1.00', taxaDol: '3.00' },
+                    { id: '4539473', corretora: 'GENIAL', tipo: 'Real', modeloMeta: 'reinvestimento', taxaWin: '0.50', taxaDol: '1.00' }
+                ];
+            }
+
+            let html = '';
+            contas.forEach(function(c) {
+                const nomeExibicao = (c.corretora || 'Conta') + ' (' + (c.tipo || 'Geral') + ') - ' + c.id;
+                html += '<option value="' + c.id + '">' + nomeExibicao + '</option>';
+            });
+            select.innerHTML = html;
+        }
+
+        function obterObjetoConta(contaId) {
+            let contas = [];
+            try { contas = JSON.parse(localStorage.getItem(KEY_CONTAS) || '[]'); } catch(e) {}
+            return contas.find(function(c) { return String(c.id).trim() === String(contaId).trim(); }) || contas[0] || {};
+        }
+
+        function inicializarFiltroMeses() {
+            const container = document.getElementById('listaCheckboxesMeses');
+            if (!container) return;
+
+            let html = '';
+            nomesMeses.forEach(function(m, idx) {
+                const marcado = (idx === mesAtualReal) ? 'checked' : '';
+                html += '<label class="flex items-center gap-2 hover:bg-gray-900 p-1.5 rounded cursor-pointer transition">' +
+                    '<input type="checkbox" value="' + idx + '" class="checkbox-mes accent-amber-500 rounded bg-gray-950 border-gray-800" ' + marcado + '>' +
+                    '<span>' + m + ' / ' + anoCorrente + '</span>' +
+                '</label>';
+            });
+
+            container.innerHTML = html;
+            atualizarTextoBotaoMeses();
+        }
+
+        window.toggleDropdownMeses = function() {
+            const menu = document.getElementById('dropdownMesesMenu');
+            if (menu) menu.classList.toggle('hidden');
+        };
+
+        window.marcarTodosMeses = function(marcar) {
+            const checks = document.querySelectorAll('.checkbox-mes');
+            checks.forEach(function(c) { c.checked = marcar; });
+            processarTabelaAuditoria();
+        };
+
+        function atualizarTextoBotaoMeses() {
+            const checks = document.querySelectorAll('.checkbox-mes:checked');
+            const spanStatus = document.getElementById('textoStatusMeses');
+            if (!spanStatus) return;
+
+            if (checks.length === 12) {
+                spanStatus.innerText = 'Todos os Meses';
+            } else if (checks.length === 0) {
+                spanStatus.innerText = 'Nenhum Mês Selecionado';
+            } else {
+                spanStatus.innerText = checks.length + ' Meses Selecionados';
+            }
+        }
+
+        function calcularDURMesEspecifico(mesIndex) {
+            let custom = {};
+            try { custom = JSON.parse(localStorage.getItem(KEY_CALENDARIO) || '{}'); } catch(e) {}
+            
+            function obterFeriados(ano) {
+                let f = {};
+                f[ano + '-01-01'] = true; f[ano + '-04-21'] = true; f[ano + '-05-01'] = true;
+                f[ano + '-09-07'] = true; f[ano + '-10-12'] = true; f[ano + '-11-02'] = true;
+                f[ano + '-11-15'] = true; f[ano + '-11-20'] = true; f[ano + '-12-25'] = true;
+                return f;
+            }
+            const feriados = obterFeriados(anoCorrente);
+            let diasUteisMes = 0;
+            let dIni = new Date(anoCorrente, mesIndex, 1);
+            let dFim = new Date(anoCorrente, parseInt(mesIndex) + 1, 0);
+
+            for (let dt = new Date(dIni); dt <= dFim; dt.setDate(dt.getDate() + 1)) {
+                let dSem = dt.getDay();
+                if (dSem === 0 || dSem === 6) continue;
+                let mStr = (dt.getMonth() + 1).toString().padStart(2, '0');
+                let dtStr = dt.getDate().toString().padStart(2, '0');
+                let chave = dt.getFullYear() + '-' + mStr + '-' + dtStr;
+                if (feriados[chave] || custom[chave] === 'folga' || custom[chave] === 'ferias') continue;
+                diasUteisMes++;
+            }
+            return diasUteisMes > 0 ? diasUteisMes : 21;
+        }
+
+        function calcularDiasUteisPassados(mesIndex) {
+            let custom = {};
+            try { custom = JSON.parse(localStorage.getItem(KEY_CALENDARIO) || '{}'); } catch(e) {}
+            
+            function obterFeriados(ano) {
+                let f = {};
+                f[ano + '-01-01'] = true; f[ano + '-04-21'] = true; f[ano + '-05-01'] = true;
+                f[ano + '-09-07'] = true; f[ano + '-10-12'] = true; f[ano + '-11-02'] = true;
+                f[ano + '-11-15'] = true; f[ano + '-11-20'] = true; f[ano + '-12-25'] = true;
+                return f;
+            }
+            const feriados = obterFeriados(anoCorrente);
+            let passados = 0;
+            let dIni = new Date(anoCorrente, mesIndex, 1);
+            let limiteFim = (mesIndex === mesAtualReal) ? new Date(anoCorrente, mesIndex, Math.min(diaHojeReal, new Date(anoCorrente, mesIndex + 1, 0).getDate())) : new Date(anoCorrente, mesIndex + 1, 0);
+
+            for (let dt = new Date(dIni); dt <= limiteFim; dt.setDate(dt.getDate() + 1)) {
+                let dSem = dt.getDay();
+                if (dSem === 0 || dSem === 6) continue;
+                let mStr = (dt.getMonth() + 1).toString().padStart(2, '0');
+                let dtStr = dt.getDate().toString().padStart(2, '0');
+                let chave = dt.getFullYear() + '-' + mStr + '-' + dtStr;
+                if (feriados[chave] || custom[chave] === 'folga' || custom[chave] === 'ferias') continue;
+                passados++;
+            }
+            return passados > 0 ? passados : 1;
+        }
+
+        function obterMetricasReaisPorMes(contaId) {
+            const trades = cacheTradesMemoria;
+            const contaObj = obterObjetoConta(contaId);
+            const taxaWin = convNum(String(contaObj.taxaWin || '1.00'));
+            const taxaWdo = convNum(String(contaObj.taxaDol || '3.00'));
+            
+            let metricas = {};
+            for (let i = 0; i < 12; i++) {
+                metricas[i] = { resultadoBruto: 0, resultadoLiquido: 0, taxaReal: 0, operacoes: 0, contratos: 0, diasOperadosSet: new Set() };
+            }
+
+            trades.forEach(function(t) {
+                const contaTrade = String(t.conta || '').trim();
+                const contaAtiva = String(contaId || '').trim();
+                if (contaTrade && contaAtiva && contaTrade !== contaAtiva) return;
+
+                const dataStr = (t.abertura || '').split(' ')[0];
+                if (!dataStr) return;
+                const partes = dataStr.split('/');
+                if (partes.length < 3) return;
+                
+                const anoOp = parseInt(partes[2]);
+                if (anoOp !== anoCorrente) return;
+
+                const mesIndex = parseInt(partes[1]) - 1;
+
+                if (mesIndex >= 0 && mesIndex <= 11) {
+                    const resBrutoOp = convNum(t.resIntervaloBruto || t.resBruto);
+                    const qtdOp = parseInt(t.qtdCompra && t.qtdCompra !== '-' ? t.qtdCompra : (t.qtdVenda && t.qtdVenda !== '-' ? t.qtdVenda : '1')) || 1;
+                    const ativo = (t.ativo || '').toUpperCase();
+                    
+                    let taxaUnitaria = taxaWin;
+                    if (ativo.includes('WDO') || ativo.includes('DOL')) taxaUnitaria = taxaWdo;
+                    const custoOp = qtdOp * taxaUnitaria;
+
+                    metricas[mesIndex].resultadoBruto += resBrutoOp;
+                    metricas[mesIndex].resultadoLiquido += (resBrutoOp - custoOp);
+                    metricas[mesIndex].taxaReal += custoOp;
+                    metricas[mesIndex].operacoes += 1;
+                    metricas[mesIndex].contratos += qtdOp;
+                    metricas[mesIndex].diasOperadosSet.add(dataStr);
+                }
+            });
+            return metricas;
+        }
+
+        window.renderizarMatrizSazonal = function() {
+            const tbody = document.getElementById('tabelaMatrizSazonalCorpo');
+            const thead = document.getElementById('tabelaCabecalho');
+            const tfoot = document.getElementById('tabelaMatrizSazonalRodape');
+            const selectConta = document.getElementById('selectContaMeta');
+            const unidadeGlobal = document.getElementById('selectUnidadeGlobal')?.value || 'BRL';
+            const baseAvaliacao = document.getElementById('selectBaseAvaliacao')?.value || 'liquido';
+            const blocoUnidade = document.getElementById('blocoUnidadeGlobal');
+
+            if (!tbody || !selectConta) return;
+
+            const contaId = selectConta.value;
+            const contaObj = obterObjetoConta(contaId);
+            const modeloMetaConta = contaObj.modeloMeta || 'sazonal';
+
+            if (blocoUnidade) {
+                blocoUnidade.style.display = modeloMetaConta === 'reinvestimento' ? 'none' : 'flex';
+            }
+
+            let metasSazonais = {};
+            try { metasSazonais = JSON.parse(localStorage.getItem(KEY_METAS_SAZONAIS) || '{}'); } catch(e) {}
+            const dadosConta = metasSazonais[contaId] || {};
+            const metricasReais = obterMetricasReaisPorMes(contaId);
+
+            if (modeloMetaConta === 'sazonal') {
+                document.getElementById('tituloMatrizMeta').innerText = 'Matriz Sazonal (Fixa) & Acompanhamento Real';
+                document.getElementById('descricaoModeloMeta').innerText = 'Planejamento financeiro mensal, ritmo diário bruto fixo, meta ajustada por dias restantes e auditoria de caixa.';
+                
+                thead.innerHTML = '<tr>' +
+                    '<th class="py-2.5 px-3 font-semibold">Mês / Ano</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right">Meta Bruta</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right">Taxas Prev.</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right text-amber-400">Meta Líquida</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-center">Dias (Op / DUR)</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right text-emerald-400">Meta Diária Bruta</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right text-cyan-400">Meta Ajustada</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-center">Ops / Contratos</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right border-l border-gray-800 text-red-400">Taxa Real</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right">Resultado Atual</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-center">Progresso</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right">Saldo Restante</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-center">Status</th>' +
+                '</tr>';
+
+                let html = '';
+                let totBruta = 0, totTaxasPrev = 0, totTaxasReais = 0, totLiquida = 0, totDur = 0, totDiasOp = 0, totOps = 0, totContratos = 0, totResReal = 0, totMetaAlvo = 0, totSaldo = 0;
+
+                for (let m = 0; m < 12; m++) {
+                    const mesDados = dadosConta[m] || {};
+                    const metaSazonal = convNum(String(mesDados.metaSazonal || 0));
+                    const taxasPrevistas = convNum(String(mesDados.taxas || 0));
+                    const durMes = calcularDURMesEspecifico(m);
+                    const metaLiquida = unidadeGlobal === 'BRL' ? (metaSazonal - taxasPrevistas) : metaSazonal;
+                    const metaDiariaBruta = durMes > 0 ? (metaSazonal / durMes) : 0;
+
+                    const dadosMesReal = metricasReais[m] || { resultadoBruto: 0, resultadoLiquido: 0, taxaReal: 0, operacoes: 0, contratos: 0, diasOperadosSet: new Set() };
+                    const resultadoAtual = baseAvaliacao === 'bruto' ? dadosMesReal.resultadoBruto : dadosMesReal.resultadoLiquido;
+                    const metaAlvo = baseAvaliacao === 'bruto' ? metaSazonal : metaLiquida;
+
+                    let metaDiariaAjustadaStr = '-';
+                    if (m === mesAtualReal && metaSazonal > 0) {
+                        const diasPassados = calcularDURMesEspecifico(m) - (durMes - calcularDiasUteisPassados(m));
+                        const diasRestantes = Math.max(1, durMes - diasPassados);
+                        const valorAjustado = (metaSazonal - resultadoAtual) / diasRestantes;
+                        metaDiariaAjustadaStr = unidadeGlobal === 'BRL' ? 'R$ ' + valorAjustado.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : valorAjustado.toLocaleString('pt-BR', { minimumFractionDigits: 1 }) + ' Pts/d';
+                    } else if (m > mesAtualReal && metaSazonal > 0) {
+                        metaDiariaAjustadaStr = unidadeGlobal === 'BRL' ? 'R$ ' + metaDiariaBruta.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : metaDiariaBruta.toLocaleString('pt-BR', { minimumFractionDigits: 1 }) + ' Pts/d';
+                    }
+
+                    let pctProgresso = metaAlvo > 0 ? ((resultadoAtual / metaAlvo) * 100) : 0;
+                    const saldoRestante = metaAlvo - resultadoAtual;
+
+                    totBruta += metaSazonal; totTaxasPrev += taxasPrevistas; totTaxasReais += dadosMesReal.taxaReal;
+                    totLiquida += metaLiquida; totDur += durMes; totDiasOp += dadosMesReal.diasOperadosSet.size;
+                    totOps += dadosMesReal.operacoes; totContratos += dadosMesReal.contratos;
+                    totResReal += resultadoAtual; totMetaAlvo += metaAlvo; totSaldo += saldoRestante;
+
+                    let badgeStatus = (dadosMesReal.operacoes === 0) ? '<span class="bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded text-[10px]">Sem Execução</span>' :
+                                      (m === mesAtualReal) ? '<span class="bg-blue-950 text-blue-400 border border-blue-800 px-2 py-0.5 rounded text-[10px] font-semibold">Em Andamento</span>' :
+                                      (metaAlvo > 0 && resultadoAtual >= metaAlvo) ? '<span class="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">Atingida</span>' :
+                                      '<span class="bg-red-950 text-red-400 border border-red-800 px-2 py-0.5 rounded text-[10px] font-semibold">Não Atingido</span>';
+
+                    html += '<tr class="hover:bg-gray-800/40 transition">' +
+                        '<td class="py-3 px-3 font-mono font-bold text-white"><i class="fa-solid fa-calendar text-indigo-400 mr-2"></i> ' + nomesMeses[m] + ' / ' + anoCorrente + '</td>' +
+                        '<td class="py-3 px-3 text-right"><input type="number" data-mes="' + m + '" data-campo="metaSazonal" value="' + metaSazonal + '" class="input-sazonal w-24 bg-gray-950 border border-gray-800 text-xs text-right text-gray-200 rounded px-2 py-1 font-mono outline-none focus:border-amber-500"></td>' +
+                        '<td class="py-3 px-3 text-right"><input type="number" data-mes="' + m + '" data-campo="taxas" value="' + taxasPrevistas + '" class="input-sazonal w-20 bg-gray-950 border border-gray-800 text-xs text-right text-red-400 rounded px-2 py-1 font-mono outline-none focus:border-amber-500"></td>' +
+                        '<td class="py-3 px-3 text-right font-mono font-bold text-amber-400">R$ ' + metaLiquida.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                        '<td class="py-3 px-3 text-center font-mono text-gray-300"><span class="text-amber-400 font-bold">' + dadosMesReal.diasOperadosSet.size + '</span> / ' + durMes + ' d</td>' +
+                        '<td class="py-3 px-3 text-right font-mono font-bold text-emerald-400">R$ ' + metaDiariaBruta.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                        '<td class="py-3 px-3 text-right font-mono font-bold text-cyan-400">' + metaDiariaAjustadaStr + '</td>' +
+                        '<td class="py-3 px-3 text-center font-mono text-gray-300"><span class="text-amber-400 font-bold">' + dadosMesReal.operacoes + '</span> op / <span class="text-cyan-400 font-bold">' + dadosMesReal.contratos + '</span> ct</td>' +
+                        '<td class="py-3 px-3 text-right font-mono font-semibold text-red-400 border-l border-gray-800">R$ ' + dadosMesReal.taxaReal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                        '<td class="py-3 px-3 text-right font-mono font-bold ' + (resultadoAtual >= 0 ? 'text-emerald-400' : 'text-red-400') + '">R$ ' + resultadoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                        '<td class="py-3 px-3 text-center font-mono font-bold ' + (pctProgresso >= 100 ? 'text-emerald-400' : 'text-gray-300') + '">' + pctProgresso.toFixed(1) + '%</td>' +
+                        '<td class="py-3 px-3 text-right font-mono font-semibold text-gray-300">R$ ' + saldoRestante.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                        '<td class="py-3 px-3 text-center">' + badgeStatus + '</td>' +
+                    '</tr>';
+                }
+                tbody.innerHTML = html;
+
+                const mediaProgAnual = totMetaAlvo > 0 ? ((totResReal / totMetaAlvo) * 100) : 0;
+                tfoot.innerHTML = '<tr class="text-white py-3">' +
+                    '<td class="py-3 px-3 uppercase font-bold text-amber-400"><i class="fa-solid fa-calculator"></i> TOTAL ANUAL</td>' +
+                    '<td class="py-3 px-3 text-right font-bold">R$ ' + totBruta.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                    '<td class="py-3 px-3 text-right font-bold text-red-400">R$ ' + totTaxasPrev.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                    '<td class="py-3 px-3 text-right font-bold text-amber-400">R$ ' + totLiquida.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                    '<td class="py-3 px-3 text-center font-bold text-gray-300">' + totDiasOp + ' / ' + totDur + ' d</td>' +
+                    '<td class="py-3 px-3 text-right font-bold text-emerald-400">R$ ' + (totBruta / (totDur || 1)).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '/d</td>' +
+                    '<td class="py-3 px-3 text-right font-bold text-cyan-400">-</td>' +
+                    '<td class="py-3 px-3 text-center font-mono font-bold text-amber-300">' + totOps + ' op / ' + totContratos + ' ct</td>' +
+                    '<td class="py-3 px-3 text-right font-bold text-red-400 border-l border-gray-800">R$ ' + totTaxasReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                    '<td class="py-3 px-3 text-right font-bold ' + (totResReal >= 0 ? 'text-emerald-400' : 'text-red-400') + '">R$ ' + totResReal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                    '<td class="py-3 px-3 text-center font-bold ' + (mediaProgAnual >= 100 ? 'text-emerald-400' : 'text-amber-400') + '">' + mediaProgAnual.toFixed(1) + '%</td>' +
+                    '<td class="py-3 px-3 text-right font-bold">R$ ' + totSaldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                    '<td class="py-3 px-3 text-center text-gray-500 uppercase font-bold">Consolidado</td>' +
+                '</tr>';
+
+            } else {
+                document.getElementById('tituloMatrizMeta').innerText = 'Matriz de Reinvestimento & Evolução de Banca';
+                document.getElementById('descricaoModeloMeta').innerText = 'Projeção de juros compostos com capital inicial editável, custos operacionais e reinvestimento automático.';
+
+                thead.innerHTML = '<tr>' +
+                    '<th class="py-2.5 px-3 font-semibold">Mês / Ano</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right text-amber-400">Capital Inicial (Editável)</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right">Meta R$</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-center">Contratos</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right text-emerald-400">Res. Bruto</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right text-red-400">Taxas / Custos</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right text-amber-300">Res. Líquido</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-right text-cyan-400">Capital Final Acumulado</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-center">Progresso</th>' +
+                    '<th class="py-2.5 px-3 font-semibold text-center">Status</th>' +
+                '</tr>';
+
+                let html = '';
+                let totMetaCompostos = 0, totResBruto = 0, totTaxasReais = 0, totResLiquido = 0;
+                let capitalAcumuladoAnterior = 0;
+
+                for (let m = 0; m < 12; m++) {
+                    const mesDados = dadosConta[m] || {};
+                    const metaDigitada = convNum(String(mesDados.metaCompostos || 0));
+                    const contratosDigitados = parseInt(mesDados.contratosCompostos || 2);
+                    const capitalDigitadoUsuario = convNum(String(mesDados.capitalInicial || 0));
+                    
+                    const dadosMesReal = metricasReais[m] || { resultadoBruto: 0, resultadoLiquido: 0, taxaReal: 0, operacoes: 0 };
+                    const resBruto = dadosMesReal.resultadoBruto;
+                    const taxasMes = dadosMesReal.taxaReal;
+                    const resLiquido = dadosMesReal.resultadoLiquido;
+
+                    let capitalInicialMes = 0;
+                    if (capitalDigitadoUsuario > 0) {
+                        capitalInicialMes = capitalDigitadoUsuario;
+                    } else if (capitalAcumuladoAnterior > 0) {
+                        capitalInicialMes = capitalAcumuladoAnterior;
+                    }
+
+                    let capitalFinalMes = 0;
+                    if (capitalInicialMes > 0) {
+                        capitalFinalMes = capitalInicialMes + resLiquido;
+                        capitalAcumuladoAnterior = capitalFinalMes;
+                    } else {
+                        capitalAcumuladoAnterior = 0;
+                    }
+
+                    let pctProgresso = metaDigitada > 0 ? ((resLiquido / metaDigitada) * 100) : 0;
+                    totMetaCompostos += metaDigitada;
+                    totResBruto += resBruto;
+                    totTaxasReais += taxasMes;
+                    totResLiquido += resLiquido;
+
+                    let badgeStatus = (dadosMesReal.operacoes === 0) ? '<span class="bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded text-[10px]">Sem Execução</span>' :
+                                      (m === mesAtualReal) ? '<span class="bg-blue-950 text-blue-400 border border-blue-800 px-2 py-0.5 rounded text-[10px] font-semibold">Em Andamento</span>' :
+                                      (metaDigitada > 0 && resLiquido >= metaDigitada) ? '<span class="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">Atingida</span>' :
+                                      '<span class="bg-red-950 text-red-400 border border-red-800 px-2 py-0.5 rounded text-[10px] font-semibold">Não Atingido</span>';
+
+                    html += '<tr class="hover:bg-gray-800/40 transition">' +
+                        '<td class="py-3 px-3 font-mono font-bold text-white"><i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i> ' + nomesMeses[m] + ' / ' + anoCorrente + '</td>' +
+                        '<td class="py-3 px-3 text-right">' +
+                            '<div class="inline-flex items-center bg-gray-950 border border-amber-600/60 rounded px-2 py-1 focus-within:border-amber-400">' +
+                                '<span class="text-amber-400 font-mono text-xs mr-1 font-bold">R$</span>' +
+                                '<input type="number" data-mes="' + m + '" data-campo="capitalInicial" value="' + (capitalDigitadoUsuario || '') + '" placeholder="0,00" class="input-composto w-24 bg-transparent text-xs text-right text-amber-400 font-bold font-mono outline-none">' +
+                            '</div>' +
+                        '</td>' +
+                        '<td class="py-3 px-3 text-right"><input type="number" data-mes="' + m + '" data-campo="metaCompostos" value="' + metaDigitada + '" class="input-composto w-24 bg-gray-950 border border-gray-800 text-xs text-right text-gray-200 rounded px-2 py-1 font-mono outline-none focus:border-amber-500"></td>' +
+                        '<td class="py-3 px-3 text-center"><input type="number" data-mes="' + m + '" data-campo="contratosCompostos" value="' + contratosDigitados + '" class="input-composto w-16 bg-gray-950 border border-gray-800 text-xs text-center text-cyan-400 font-bold rounded px-2 py-1 font-mono outline-none focus:border-amber-500"></td>' +
+                        '<td class="py-3 px-3 text-right font-mono ' + (resBruto >= 0 ? 'text-emerald-400' : 'text-red-400') + '">R$ ' + resBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                        '<td class="py-3 px-3 text-right font-mono text-red-400">R$ ' + taxasMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                        '<td class="py-3 px-3 text-right font-mono font-bold ' + (resLiquido >= 0 ? 'text-amber-300' : 'text-red-400') + '">R$ ' + resLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                        '<td class="py-3 px-3 text-right font-mono font-bold text-cyan-400">R$ ' + (capitalInicialMes > 0 ? capitalFinalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00') + '</td>' +
+                        '<td class="py-3 px-3 text-center font-mono font-bold ' + (pctProgresso >= 100 ? 'text-emerald-400' : 'text-gray-300') + '">' + pctProgresso.toFixed(1) + '%</td>' +
+                        '<td class="py-3 px-3 text-center">' + badgeStatus + '</td>' +
+                    '</tr>';
+                }
+                tbody.innerHTML = html;
+
+                tfoot.innerHTML = '<tr class="text-white py-3">' +
+                    '<td class="py-3 px-3 uppercase font-bold text-amber-400"><i class="fa-solid fa-calculator"></i> TOTAL / FINAL</td>' +
+                    '<td class="py-3 px-3 text-right font-bold">-</td>' +
+                    '<td class="py-3 px-3 text-right font-bold text-amber-400">R$ ' + totMetaCompostos.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                    '<td class="py-3 px-3 text-center font-bold">-</td>' +
+                    '<td class="py-3 px-3 text-right font-bold text-emerald-400">R$ ' + totResBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                    '<td class="py-3 px-3 text-right font-bold text-red-400">R$ ' + totTaxasReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                    '<td class="py-3 px-3 text-right font-bold text-amber-300">R$ ' + totResLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                    '<td class="py-3 px-3 text-right font-bold text-cyan-400">R$ ' + capitalAcumuladoAnterior.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                    '<td class="py-3 px-3 text-center font-bold text-amber-400">' + (totMetaCompostos > 0 ? ((totResLiquido / totMetaCompostos) * 100).toFixed(1) : 0) + '%</td>' +
+                    '<td class="py-3 px-3 text-center text-gray-500 uppercase font-bold">Consolidado</td>' +
+                '</tr>';
+            }
+        }
+
+        window.salvarMetasSazonais = function() {
+            const selectConta = document.getElementById('selectContaMeta');
+            if (!selectConta) return;
+            const contaId = selectConta.value;
+            let metasSazonais = {};
+            try { metasSazonais = JSON.parse(localStorage.getItem(KEY_METAS_SAZONAIS) || '{}'); } catch(e) {}
+
+            if (!metasSazonais[contaId]) metasSazonais[contaId] = {};
+
+            document.querySelectorAll('.input-sazonal').forEach(function(inp) {
+                const mes = inp.getAttribute('data-mes');
+                const campo = inp.getAttribute('data-campo');
+                if (!metasSazonais[contaId][mes]) metasSazonais[contaId][mes] = {};
+                metasSazonais[contaId][mes][campo] = inp.value;
+            });
+
+            document.querySelectorAll('.input-composto').forEach(function(inp) {
+                const mes = inp.getAttribute('data-mes');
+                const campo = inp.getAttribute('data-campo');
+                if (!metasSazonais[contaId][mes]) metasSazonais[contaId][mes] = {};
+                metasSazonais[contaId][mes][campo] = inp.value;
+            });
+
+            try {
+                limparLocalStorageAntigo();
+                localStorage.setItem(KEY_METAS_SAZONAIS, JSON.stringify(metasSazonais));
+                alert('Metas salvas com sucesso!');
+            } catch(e) {
+                alert('Erro ao salvar no armazenamento local. Limpe os dados do navegador se o problema persistir.');
+            }
+            renderizarMatrizSazonal();
+            processarTabelaAuditoria();
+        };
+
+        window.processarTabelaAuditoria = function() {
+            const tbody = document.getElementById('tabelaAuditoriaCorpo');
+            const selectConta = document.getElementById('selectContaMeta');
+            if (!tbody || !selectConta) return;
+            atualizarTextoBotaoMeses();
+
+            const contaAtiva = String(selectConta.value || '').trim();
+            const checks = document.querySelectorAll('.checkbox-mes:checked');
+            let mesesPermitidos = [];
+            checks.forEach(function(c) { mesesPermitidos.push(parseInt(c.value)); });
+
+            const trades = cacheTradesMemoria;
+            let agrupado = {};
+
+            trades.forEach(function(t) {
+                const contaTrade = String(t.conta || '').trim();
+                if (contaTrade && contaAtiva && contaTrade !== contaAtiva) return;
+
+                const dataStr = (t.abertura || '').split(' ')[0];
+                if (!dataStr) return;
+                const partes = dataStr.split('/');
+                if (partes.length < 3) return;
+
+                const anoOp = parseInt(partes[2]);
+                if (anoOp !== anoCorrente) return;
+
+                const mesOp = parseInt(partes[1]) - 1;
+                if (!mesesPermitidos.includes(mesOp)) return;
+
+                if (!agrupado[dataStr]) agrupado[dataStr] = { qtd: 0, contratos: 0, resultado: 0 };
+                const resultadoOp = convNum(t.resIntervaloBruto || t.resBruto);
+                const qtdOp = parseInt(t.qtdCompra && t.qtdCompra !== '-' ? t.qtdCompra : (t.qtdVenda && t.qtdVenda !== '-' ? t.qtdVenda : '1')) || 1;
+
+                agrupado[dataStr].qtd++;
+                agrupado[dataStr].contratos += qtdOp;
+                agrupado[dataStr].resultado += resultadoOp;
+            });
+
+            const datas = Object.keys(agrupado).sort(function(a, b) {
+                const pA = a.split('/'); const pB = b.split('/');
+                return new Date(pB[2] + '-' + pB[1] + '-' + pB[0]).getTime() - new Date(pA[2] + '-' + pA[1] + '-' + pA[0]).getTime();
+            });
+
+            if (datas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">Nenhum registro encontrado para a conta e período selecionados.</td></tr>';
+                return;
+            }
+
+            let htmlRows = '';
+            datas.forEach(function(data) {
+                const item = agrupado[data];
+                let badge = item.resultado > 0 ? '<span class="bg-emerald-950 text-emerald-400 border border-emerald-900 px-2.5 py-1 rounded text-[11px] font-semibold">Positivo</span>' :
+                            item.resultado < 0 ? '<span class="bg-red-950 text-red-400 border border-red-900 px-2.5 py-1 rounded text-[11px] font-semibold">Negativo</span>' :
+                            '<span class="bg-gray-800 text-gray-300 border border-gray-700 px-2.5 py-1 rounded text-[11px] font-semibold">Zero a Zero</span>';
+
+                htmlRows += '<tr class="hover:bg-gray-800/40 transition">' +
+                    '<td class="py-3 px-4 font-mono font-bold text-white"><i class="fa-solid fa-calendar-day text-amber-400 mr-2"></i> ' + data + '</td>' +
+                    '<td class="py-3 px-4 font-mono text-center text-gray-300">' + item.qtd + '</td>' +
+                    '<td class="py-3 px-4 font-mono text-center text-amber-400 font-bold">' + item.contratos + '</td>' +
+                    '<td class="py-3 px-4 font-mono text-right font-bold ' + (item.resultado >= 0 ? 'text-emerald-400' : 'text-red-400') + '">R$ ' + item.resultado.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '</td>' +
+                    '<td class="py-3 px-4 text-center">' + badge + '</td>' +
+                '</tr>';
+            });
+            tbody.innerHTML = htmlRows;
+        }
+
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('dropdownMesesMenu');
+            const btn = document.getElementById('btnDropdownMeses');
+            if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) dropdown.classList.add('hidden');
+        });
+
+        setTimeout(async function() {
+            verificarEstadoOculto();
+            carregarSelectContas();
+            inicializarFiltroMeses();
+            await carregarTradesBackend();
+            renderizarMatrizSazonal();
+            processarTabelaAuditoria();
+        }, 100);
+    })();
+</script>

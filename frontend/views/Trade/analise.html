@@ -1,0 +1,487 @@
+<!-- ========================================================================================= -->
+<!-- ARQUIVO: frontend/views/Trade/analise.html                                                -->
+<!-- CONTEXTO: Análise e Playbook Sincronizado com Carregamento Seguro do Chart.js             -->
+<!-- ========================================================================================= -->
+
+<div class="max-w-[96%] mx-auto space-y-5 pb-10">
+    <!-- Cabeçalho do Módulo -->
+    <div class="bg-gray-900 border border-gray-800 p-5 rounded-xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="flex items-center gap-2.5">
+                <span class="bg-blue-600/20 text-blue-400 border border-blue-500/30 p-2 rounded-lg text-sm">
+                    <i class="fa-solid fa-chart-line"></i>
+                </span>
+                <h1 class="text-base font-bold text-white tracking-wide">Módulo: Análise e Playbook</h1>
+                <span class="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded font-mono">analise.html</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Engenharia reversa das suas operações para identificar padrões de alta performance e gargalos operacionais.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button onclick="carregarDadosEaplicarFiltros()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition shadow">
+                <i class="fa-solid fa-rotate"></i> Atualizar Dados
+            </button>
+            <button onclick="limparFiltrosAnalise()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-2 rounded-lg text-xs font-semibold transition">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Painel de Filtros Avançados -->
+    <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl shadow grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div>
+            <label class="block text-[10px] text-gray-400 uppercase font-mono mb-1">Conta</label>
+            <select id="filtroAnaliseConta" onchange="aplicarFiltrosAnalise()" class="w-full bg-gray-950 border border-gray-800 text-xs text-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500">
+                <option value="">Todas as Contas</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-[10px] text-gray-400 uppercase font-mono mb-1">Ativo</label>
+            <select id="filtroAnaliseAtivo" onchange="aplicarFiltrosAnalise()" class="w-full bg-gray-950 border border-gray-800 text-xs text-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500">
+                <option value="">Todos os Ativos</option>
+                <option value="WIN">WIN (Mini Índice)</option>
+                <option value="WDO">WDO (Mini Dólar)</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-[10px] text-gray-400 uppercase font-mono mb-1">Setup</label>
+            <select id="filtroAnaliseSetup" onchange="aplicarFiltrosAnalise()" class="w-full bg-gray-950 border border-gray-800 text-xs text-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500">
+                <option value="">Todos os Setups</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-[10px] text-gray-400 uppercase font-mono mb-1">Emocional</label>
+            <select id="filtroAnaliseEmocional" onchange="aplicarFiltrosAnalise()" class="w-full bg-gray-950 border border-gray-800 text-xs text-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500">
+                <option value="">Todos os Estados</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-[10px] text-gray-400 uppercase font-mono mb-1">Período / Data</label>
+            <input type="date" id="filtroAnaliseData" onchange="aplicarFiltrosAnalise()" class="w-full bg-gray-950 border border-gray-800 text-xs text-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-500 font-mono">
+        </div>
+    </div>
+
+    <!-- Cards de KPIs de Performance Profissional -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div class="bg-gray-900 border border-gray-800 p-3.5 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono flex items-center justify-between">
+                <span>Fator de Lucro</span>
+                <i class="fa-solid fa-scale-balanced text-blue-400"></i>
+            </div>
+            <div id="kpiFatorLucro" class="text-base font-bold font-mono mt-1 text-white">0.00</div>
+            <div class="text-[10px] text-gray-500 mt-0.5">Lucro / Prejuízo Bruto</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 p-3.5 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono flex items-center justify-between">
+                <span>Payoff</span>
+                <i class="fa-solid fa-arrows-split-up-and-left text-emerald-400"></i>
+            </div>
+            <div id="kpiPayoff" class="text-base font-bold font-mono mt-1 text-white">0.00</div>
+            <div class="text-[10px] text-gray-500 mt-0.5">Média Gain / Média Loss</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 p-3.5 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono flex items-center justify-between">
+                <span>Resultado Líq.</span>
+                <i class="fa-solid fa-wallet text-amber-400"></i>
+            </div>
+            <div id="kpiResLiq" class="text-base font-bold font-mono mt-1 text-gray-200">R$ 0,00</div>
+            <div class="text-[10px] text-gray-500 mt-0.5">Após custos operacionais</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 p-3.5 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono flex items-center justify-between">
+                <span>Taxa de Acerto</span>
+                <i class="fa-solid fa-bullseye text-emerald-400"></i>
+            </div>
+            <div id="kpiWinRate" class="text-base font-bold font-mono mt-1 text-emerald-400">0.0%</div>
+            <div class="text-[10px] text-gray-500 mt-0.5">% de Operações Vencedoras</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 p-3.5 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono flex items-center justify-between">
+                <span>Média por Op.</span>
+                <i class="fa-solid fa-chart-line text-blue-400"></i>
+            </div>
+            <div id="kpiMediaOp" class="text-base font-bold font-mono mt-1 text-white">R$ 0,00</div>
+            <div class="text-[10px] text-gray-500 mt-0.5">Expectativa matemática</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 p-3.5 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono flex items-center justify-between">
+                <span>Total OPs</span>
+                <i class="fa-solid fa-list-check text-purple-400"></i>
+            </div>
+            <div id="kpiTotalOp" class="text-base font-bold font-mono mt-1 text-white">0</div>
+            <div class="text-[10px] text-gray-500 mt-0.5">Operações analisadas</div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Curva de Capital (Equity Curve) -->
+    <div class="bg-gray-900 border border-gray-800 p-5 rounded-xl shadow-xl space-y-4">
+        <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+            <div>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-chart-area text-blue-400"></i> Curva de Capital Acumulada (Equity Curve)
+                </h3>
+                <p class="text-[11px] text-gray-400 mt-0.5">Evolução do resultado líquido acumulado operação a operação com base nos filtros selecionados.</p>
+            </div>
+            <span class="text-[10px] bg-gray-800 text-gray-400 px-2.5 py-1 rounded font-mono border border-gray-700">Gráfico Dinâmico</span>
+        </div>
+        <div class="w-full h-[320px] relative">
+            <canvas id="graficoCurvaCapital"></canvas>
+        </div>
+    </div>
+
+    <!-- Tabela de Diagnóstico por Setup (Playbook Intelligence) -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl shadow-xl overflow-hidden">
+        <div class="p-5 border-b border-gray-800 flex justify-between items-center bg-gray-950">
+            <div>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-table-cells text-emerald-400"></i> Diagnóstico por Setup (Playbook & Performance)
+                </h3>
+                <p class="text-[11px] text-gray-400 mt-0.5">Avaliação consolidada para identificar quais setups geram lucro e quais geram prejuízo.</p>
+            </div>
+            <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-900 px-2.5 py-1 rounded font-mono">Agrupado por Setup</span>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead class="bg-gray-950 text-gray-400 border-b border-gray-800 uppercase font-mono text-[10px]">
+                    <tr>
+                        <th class="py-3 px-4 font-semibold">Setup / Padrão</th>
+                        <th class="py-3 px-4 font-semibold text-center">Operações</th>
+                        <th class="py-3 px-4 font-semibold text-center">Taxa de Acerto</th>
+                        <th class="py-3 px-4 font-semibold text-center">Fator de Lucro</th>
+                        <th class="py-3 px-4 font-semibold text-right">Resultado Líquido</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaDiagnosticoCorpo" class="divide-y divide-gray-800 text-gray-300">
+                    <!-- Preenchido via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY_CONTAS_ANALISE = 'cockpit_contas_completo';
+    let cacheTradesAnaliseBrutos = [];
+    let meuGraficoEquity = null;
+
+    function garantirChartJsCarregado(callback) {
+        if (typeof Chart !== 'undefined') {
+            callback();
+        } else {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+            script.onload = callback;
+            document.head.appendChild(script);
+        }
+    }
+
+    function converterParaNumAnalise(valorStr) {
+        if (!valorStr || typeof valorStr !== 'string') return 0;
+        let limpo = valorStr.trim().replace(/[R$\s]/g, '');
+        if (limpo.includes(',') && limpo.includes('.')) {
+            limpo = limpo.replace(/\./g, '').replace(',', '.');
+        } else if (limpo.includes(',')) {
+            limpo = limpo.replace(',', '.');
+        }
+        const num = parseFloat(limpo);
+        return isNaN(num) ? 0 : num;
+    }
+
+    function obterTaxaAnalise(numConta, ativo) {
+        try {
+            const contas = JSON.parse(localStorage.getItem(STORAGE_KEY_CONTAS_ANALISE) || '[]');
+            const conta = contas.find(c => c.id.toString().trim() === numConta.toString().trim());
+            if (!conta) return 0;
+            const up = (ativo || '').toUpperCase();
+            if (up.includes('WIN')) return converterParaNumAnalise(conta.taxaWin);
+            if (up.includes('WDO')) return converterParaNumAnalise(conta.taxaDol);
+        } catch(e) {}
+        return 0;
+    }
+
+    function converterDataParaTimestampCustom(dataStr) {
+        if (!dataStr || typeof dataStr !== 'string') return 0;
+        const partes = dataStr.trim().split(' ');
+        if (partes.length === 0 || !partes[0].includes('/')) return 0;
+        const dataPartes = partes[0].split('/');
+        if (dataPartes.length < 3) return 0;
+        const isoStr = `${dataPartes[2]}-${dataPartes[1]}-${dataPartes[0]}T${partes[1] || '00:00:00'}`;
+        const ts = new Date(isoStr).getTime();
+        return isNaN(ts) ? 0 : ts;
+    }
+
+    function carregarOpcoesSelectsAnalise() {
+        try {
+            const contas = JSON.parse(localStorage.getItem(STORAGE_KEY_CONTAS_ANALISE) || '[]');
+            const selectConta = document.getElementById('filtroAnaliseConta');
+            if (selectConta) {
+                let html = '<option value="">Todas as Contas</option>';
+                contas.forEach(c => html += `<option value="${c.id}">${c.id} (${c.corretora || 'Conta'})</option>`);
+                selectConta.innerHTML = html;
+            }
+
+            const setups = JSON.parse(localStorage.getItem('cockpit_cat_setups') || '[]');
+            const selectSetup = document.getElementById('filtroAnaliseSetup');
+            if (selectSetup) {
+                let html = '<option value="">Todos os Setups</option>';
+                setups.forEach(s => {
+                    const nome = s.nome || s;
+                    html += `<option value="${nome}">${nome}</option>`;
+                });
+                selectSetup.innerHTML = html;
+            }
+
+            const emocional = JSON.parse(localStorage.getItem('cockpit_cat_emocional') || '[]');
+            const selectEmocional = document.getElementById('filtroAnaliseEmocional');
+            if (selectEmocional) {
+                let html = '<option value="">Todos os Estados</option>';
+                emocional.forEach(e => {
+                    const nome = e.nome || e;
+                    html += `<option value="${nome}">${nome}</option>`;
+                });
+                selectEmocional.innerHTML = html;
+            }
+        } catch(e) {}
+    }
+
+    window.carregarDadosEaplicarFiltros = async function() {
+        try {
+            const response = await fetch("/api/trades", {
+                credentials: "same-origin"
+            });
+            if (!response.ok) throw new Error("Erro ao carregar dados da API.");
+            
+            cacheTradesAnaliseBrutos = await response.json();
+            aplicarFiltrosAnalise();
+        } catch (err) {
+            console.error("Erro ao sincronizar dados da análise:", err);
+        }
+    };
+
+    window.aplicarFiltrosAnalise = function() {
+        const fConta = document.getElementById('filtroAnaliseConta').value;
+        const fAtivo = document.getElementById('filtroAnaliseAtivo').value;
+        const fSetup = document.getElementById('filtroAnaliseSetup').value;
+        const fEmocional = document.getElementById('filtroAnaliseEmocional').value;
+        const fData = document.getElementById('filtroAnaliseData').value;
+
+        const filtrados = cacheTradesAnaliseBrutos.filter(t => {
+            if (fConta && (t.conta || '').toString().trim() !== fConta.toString().trim()) return false;
+            if (fAtivo && !(t.ativo || '').toUpperCase().includes(fAtivo.toUpperCase())) return false;
+            if (fSetup && (t.setup || '') !== fSetup) return false;
+            if (fEmocional && (t.emocional || '') !== fEmocional) return false;
+            if (fData) {
+                const dataPartes = (t.abertura || '').split(' ')[0].split('/');
+                if (dataPartes.length === 3) {
+                    const dataIso = `${dataPartes[2]}-${dataPartes[1]}-${dataPartes[0]}`;
+                    if (dataIso !== fData) return false;
+                } else {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        const tradesOrdenados = filtrados.slice().sort((a, b) => {
+            const tsA = converterDataParaTimestampCustom(a.abertura);
+            const tsB = converterDataParaTimestampCustom(b.abertura);
+            return tsA - tsB;
+        });
+
+        calcularKPIsAnalise(tradesOrdenados);
+        renderizarGraficoEquity(tradesOrdenados);
+        renderizarTabelaDiagnostico(tradesOrdenados);
+    };
+
+    window.limparFiltrosAnalise = function() {
+        document.getElementById('filtroAnaliseConta').value = '';
+        document.getElementById('filtroAnaliseAtivo').value = '';
+        document.getElementById('filtroAnaliseSetup').value = '';
+        document.getElementById('filtroAnaliseEmocional').value = '';
+        document.getElementById('filtroAnaliseData').value = '';
+        aplicarFiltrosAnalise();
+    };
+
+    function calcularKPIsAnalise(trades) {
+        let lucroBruto = 0, prejuizoBruto = 0;
+        let somaGains = 0, qtdGains = 0;
+        let somaLosses = 0, qtdLosses = 0;
+        let resultadoLiquidoTotal = 0;
+        let qtdVencedoras = 0;
+
+        trades.forEach(t => {
+            const bruto = converterParaNumAnalise(t.resIntervaloBruto || t.resBruto);
+            const qtdStr = t.qtdCompra && t.qtdCompra !== '-' ? t.qtdCompra : (t.qtdVenda && t.qtdVenda !== '-' ? t.qtdVenda : '1');
+            const custo = (parseInt(qtdStr) || 1) * obterTaxaAnalise(t.conta, t.ativo);
+            const liquido = bruto - custo;
+
+            resultadoLiquidoTotal += liquido;
+
+            if (bruto > 0) {
+                lucroBruto += bruto;
+                somaGains += bruto;
+                qtdGains++;
+                qtdVencedoras++;
+            } else if (bruto < 0) {
+                prejuizoBruto += Math.abs(bruto);
+                somaLosses += Math.abs(bruto);
+                qtdLosses++;
+            }
+        });
+
+        const totalOp = trades.length;
+        const winRate = totalOp > 0 ? (qtdVencedoras / totalOp) * 100 : 0;
+        const fatorLucro = prejuizoBruto > 0 ? (lucroBruto / prejuizoBruto) : (lucroBruto > 0 ? lucroBruto : 0);
+        
+        const mediaGain = qtdGains > 0 ? (somaGains / qtdGains) : 0;
+        const mediaLoss = qtdLosses > 0 ? (somaLosses / qtdLosses) : 0;
+        const payoff = mediaLoss > 0 ? (mediaGain / mediaLoss) : mediaGain;
+        const mediaPorOp = totalOp > 0 ? (resultadoLiquidoTotal / totalOp) : 0;
+
+        document.getElementById('kpiFatorLucro').textContent = fatorLucro.toFixed(2);
+        document.getElementById('kpiPayoff').textContent = payoff.toFixed(2);
+        
+        const elRes = document.getElementById('kpiResLiq');
+        elRes.textContent = `R$ ${resultadoLiquidoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        elRes.className = `text-base font-bold font-mono mt-1 ${resultadoLiquidoTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+
+        document.getElementById('kpiWinRate').textContent = `${winRate.toFixed(1)}%`;
+        
+        const elMedia = document.getElementById('kpiMediaOp');
+        elMedia.textContent = `R$ ${mediaPorOp.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        elMedia.className = `text-base font-bold font-mono mt-1 ${mediaPorOp >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+
+        document.getElementById('kpiTotalOp').textContent = totalOp;
+    }
+
+    function renderizarGraficoEquity(trades) {
+        garantirChartJsCarregado(() => {
+            const ctx = document.getElementById('graficoCurvaCapital');
+            if (!ctx) return;
+
+            let acumulado = 0;
+            const labels = [];
+            const dadosAcumulados = [];
+
+            trades.forEach((t, i) => {
+                const bruto = converterParaNumAnalise(t.resIntervaloBruto || t.resBruto);
+                const custo = (parseInt(t.qtdCompra && t.qtdCompra !== '-' ? t.qtdCompra : '1') || 1) * obterTaxaAnalise(t.conta, t.ativo);
+                acumulado += (bruto - custo);
+
+                labels.push(`Op #${i+1} (${t.abertura || ''})`);
+                dadosAcumulados.push(acumulado);
+            });
+
+            if (meuGraficoEquity) {
+                meuGraficoEquity.destroy();
+            }
+
+            meuGraficoEquity = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Resultado Acumulado (R$)',
+                        data: dadosAcumulados,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.2,
+                        pointRadius: trades.length > 50 ? 0 : 3,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let val = context.raw || 0;
+                                    return ` Acumulado: R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#9ca3af', font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { 
+                                color: '#9ca3af',
+                                font: { size: 10 },
+                                callback: function(value) {
+                                    return `R$ ${value.toLocaleString('pt-BR')}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    function renderizarTabelaDiagnostico(trades) {
+        const tbody = document.getElementById('tabelaDiagnosticoCorpo');
+        if (!tbody) return;
+
+        let agrupado = {};
+
+        trades.forEach(t => {
+            const setup = t.setup && t.setup.trim() !== '' ? t.setup : 'Não Definido';
+            if (!agrupado[setup]) {
+                agrupado[setup] = { qtd: 0, wins: 0, lucroBruto: 0, prejuizoBruto: 0, liquidoTotal: 0 };
+            }
+
+            const bruto = converterParaNumAnalise(t.resIntervaloBruto || t.resBruto);
+            const custo = (parseInt(t.qtdCompra && t.qtdCompra !== '-' ? t.qtdCompra : '1') || 1) * obterTaxaAnalise(t.conta, t.ativo);
+            const liquido = bruto - custo;
+
+            agrupado[setup].qtd++;
+            agrupado[setup].liquidoTotal += liquido;
+
+            if (bruto > 0) {
+                agrupado[setup].wins++;
+                agrupado[setup].lucroBruto += bruto;
+            } else if (bruto < 0) {
+                agrupado[setup].prejuizoBruto += Math.abs(bruto);
+            }
+        });
+
+        const chaves = Object.keys(agrupado);
+        if (chaves.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500">Nenhum dado encontrado para o diagnóstico.</td></tr>`;
+            return;
+        }
+
+        chaves.sort((a, b) => agrupado[b].liquidoTotal - agrupado[a].liquidoTotal);
+
+        tbody.innerHTML = chaves.map(setup => {
+            const d = agrupado[setup];
+            const winRate = d.qtd > 0 ? (d.wins / d.qtd) * 100 : 0;
+            const fatorLucro = d.prejuizoBruto > 0 ? (d.lucroBruto / d.prejuizoBruto) : (d.lucroBruto > 0 ? 99.99 : 0);
+
+            return `
+                <tr class="hover:bg-gray-800/40 transition">
+                    <td class="py-3 px-4 font-bold text-white"><span class="bg-gray-800 text-blue-400 px-2 py-0.5 rounded text-[11px] font-mono mr-2">${setup}</span></td>
+                    <td class="py-3 px-4 font-mono text-center text-gray-300">${d.qtd}</td>
+                    <td class="py-3 px-4 font-mono text-center text-emerald-400 font-semibold">${winRate.toFixed(1)}%</td>
+                    <td class="py-3 px-4 font-mono text-center font-bold ${fatorLucro >= 1 ? 'text-emerald-400' : 'text-red-400'}">${fatorLucro === 99.99 ? 'Inf.' : fatorLucro.toFixed(2)}</td>
+                    <td class="py-3 px-4 font-mono text-right font-bold ${d.liquidoTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}">R$ ${d.liquidoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    setTimeout(() => {
+        carregarOpcoesSelectsAnalise();
+        carregarDadosEaplicarFiltros();
+    }, 100);
+</script>

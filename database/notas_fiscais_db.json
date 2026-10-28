@@ -1,0 +1,2170 @@
+[
+  {
+    "id": 1,
+    "nome": "NotaCorretagem_01-11-25_30-11-25.pdf",
+    "data": 1792261558.8707986,
+    "selecionado": true,
+    "notas": [
+      {
+        "data": "03/11/2025",
+        "nota": "633511",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -100.0,
+        "total_despesas": 2.7,
+        "irrf": 0.0,
+        "liquido": -102.7
+      },
+      {
+        "data": "05/11/2025",
+        "nota": "659786",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN)",
+        "valor_negocios": -30.0,
+        "total_despesas": 0.5,
+        "irrf": 0.0,
+        "liquido": -30.5
+      },
+      {
+        "data": "06/11/2025",
+        "nota": "673209",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN)",
+        "valor_negocios": -80.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -81.0
+      },
+      {
+        "data": "07/11/2025",
+        "nota": "686363",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -16.0,
+        "total_despesas": 5.9,
+        "irrf": 0.0,
+        "liquido": -21.9
+      },
+      {
+        "data": "10/11/2025",
+        "nota": "699139",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN)",
+        "valor_negocios": -4.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -5.0
+      },
+      {
+        "data": "11/11/2025",
+        "nota": "712416",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN)",
+        "valor_negocios": 33.0,
+        "total_despesas": 4.0,
+        "irrf": 0.29,
+        "liquido": 28.71
+      },
+      {
+        "data": "12/11/2025",
+        "nota": "725696",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 54.0,
+        "total_despesas": 5.4,
+        "irrf": 0.48,
+        "liquido": 48.12
+      },
+      {
+        "data": "13/11/2025",
+        "nota": "738606",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -78.0,
+        "total_despesas": 6.4,
+        "irrf": 0.0,
+        "liquido": -84.4
+      },
+      {
+        "data": "14/11/2025",
+        "nota": "751431",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WDO)",
+        "valor_negocios": 25.0,
+        "total_despesas": 6.6,
+        "irrf": 0.18,
+        "liquido": 18.22
+      },
+      {
+        "data": "17/11/2025",
+        "nota": "763802",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -34.0,
+        "total_despesas": 8.9,
+        "irrf": 0.0,
+        "liquido": -42.9
+      },
+      {
+        "data": "18/11/2025",
+        "nota": "776555",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 8.0,
+        "total_despesas": 2.7,
+        "irrf": 0.05,
+        "liquido": 5.25
+      },
+      {
+        "data": "19/11/2025",
+        "nota": "789216",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 44.0,
+        "total_despesas": 15.8,
+        "irrf": 0.28,
+        "liquido": 27.92
+      },
+      {
+        "data": "21/11/2025",
+        "nota": "789129",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 13.0,
+        "total_despesas": 13.0,
+        "irrf": 0.0,
+        "liquido": 0.0
+      },
+      {
+        "data": "24/11/2025",
+        "nota": "800600",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 171.0,
+        "total_despesas": 22.5,
+        "irrf": 1.48,
+        "liquido": 147.02
+      },
+      {
+        "data": "25/11/2025",
+        "nota": "813213",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN)",
+        "valor_negocios": 0.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -1.0
+      },
+      {
+        "data": "26/11/2025",
+        "nota": "826015",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -177.0,
+        "total_despesas": 18.7,
+        "irrf": 0.0,
+        "liquido": -195.7
+      },
+      {
+        "data": "27/11/2025",
+        "nota": "838495",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN)",
+        "valor_negocios": 9.0,
+        "total_despesas": 0.5,
+        "irrf": 0.08,
+        "liquido": 8.42
+      },
+      {
+        "data": "28/11/2025",
+        "nota": "849589",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -47.0,
+        "total_despesas": 19.9,
+        "irrf": 0.0,
+        "liquido": -66.9
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "nome": "NotaCorretagem_01-10-25_31-10-25.pdf",
+    "data": 1792261014.874203,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "14/10/2025",
+        "nota": "3708",
+        "corretora": "Genial / 1885259",
+        "mercado": "B3 (Ações)",
+        "valor_negocios": 0.48,
+        "total_despesas": 0.37,
+        "irrf": 0.0,
+        "liquido": 0.11
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "nome": "NotaCorretagem_01-10-25_31-10-25 (1).pdf",
+    "data": 1792261537.9242437,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "13/10/2025",
+        "nota": "442387",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 60.0,
+        "total_despesas": 2.16,
+        "irrf": 0.57,
+        "liquido": 57.27
+      },
+      {
+        "data": "14/10/2025",
+        "nota": "455614",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -100.0,
+        "total_despesas": 2.16,
+        "irrf": 0.0,
+        "liquido": -102.16
+      },
+      {
+        "data": "17/10/2025",
+        "nota": "495268",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -60.0,
+        "total_despesas": 2.16,
+        "irrf": 0.0,
+        "liquido": -62.16
+      },
+      {
+        "data": "20/10/2025",
+        "nota": "507943",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 140.0,
+        "total_despesas": 4.32,
+        "irrf": 1.35,
+        "liquido": 134.33
+      },
+      {
+        "data": "21/10/2025",
+        "nota": "521102",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -30.0,
+        "total_despesas": 2.16,
+        "irrf": 0.0,
+        "liquido": -32.16
+      },
+      {
+        "data": "22/10/2025",
+        "nota": "534328",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 60.0,
+        "total_despesas": 2.16,
+        "irrf": 0.57,
+        "liquido": 57.27
+      },
+      {
+        "data": "27/10/2025",
+        "nota": "571926",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -84.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -85.5
+      },
+      {
+        "data": "28/10/2025",
+        "nota": "584355",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -20.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -21.0
+      },
+      {
+        "data": "29/10/2025",
+        "nota": "596976",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 110.0,
+        "total_despesas": 2.16,
+        "irrf": 1.07,
+        "liquido": 106.77
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "nome": "NotaCorretagem_01-12-25_31-12-25 (1).pdf",
+    "data": 1792337597.986618,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "01/12/2025",
+        "nota": "861701",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -3.0,
+        "total_despesas": 7.66,
+        "irrf": 0.0,
+        "liquido": -10.66
+      },
+      {
+        "data": "02/12/2025",
+        "nota": "874390",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 54.0,
+        "total_despesas": 1.5,
+        "irrf": 0.52,
+        "liquido": 51.98
+      },
+      {
+        "data": "03/12/2025",
+        "nota": "887231",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -73.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -74.0
+      },
+      {
+        "data": "04/12/2025",
+        "nota": "899716",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -71.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -72.0
+      },
+      {
+        "data": "08/12/2025",
+        "nota": "923945",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 11.0,
+        "total_despesas": 0.5,
+        "irrf": 0.1,
+        "liquido": 10.4
+      },
+      {
+        "data": "09/12/2025",
+        "nota": "936450",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 30.0,
+        "total_despesas": 1.5,
+        "irrf": 0.28,
+        "liquido": 28.22
+      },
+      {
+        "data": "10/12/2025",
+        "nota": "949081",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -59.0,
+        "total_despesas": 2.66,
+        "irrf": 0.0,
+        "liquido": -61.66
+      },
+      {
+        "data": "11/12/2025",
+        "nota": "961374",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -26.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -27.0
+      },
+      {
+        "data": "12/12/2025",
+        "nota": "973370",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 12.0,
+        "total_despesas": 1.0,
+        "irrf": 0.11,
+        "liquido": 10.89
+      },
+      {
+        "data": "15/12/2025",
+        "nota": "984967",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 56.0,
+        "total_despesas": 0.5,
+        "irrf": 0.55,
+        "liquido": 54.95
+      },
+      {
+        "data": "16/12/2025",
+        "nota": "756",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -30.0,
+        "total_despesas": 0.5,
+        "irrf": 0.0,
+        "liquido": -30.5
+      },
+      {
+        "data": "17/12/2025",
+        "nota": "12690",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 1.0,
+        "total_despesas": 0.5,
+        "irrf": 0.0,
+        "liquido": 0.5
+      },
+      {
+        "data": "18/12/2025",
+        "nota": "24482",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -95.0,
+        "total_despesas": 3.16,
+        "irrf": 0.0,
+        "liquido": -98.16
+      },
+      {
+        "data": "19/12/2025",
+        "nota": "35815",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -20.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -21.0
+      },
+      {
+        "data": "22/12/2025",
+        "nota": "46792",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 2.0,
+        "total_despesas": 0.5,
+        "irrf": 0.01,
+        "liquido": 1.49
+      },
+      {
+        "data": "23/12/2025",
+        "nota": "57663",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -81.0,
+        "total_despesas": 2.5,
+        "irrf": 0.0,
+        "liquido": -83.5
+      },
+      {
+        "data": "29/12/2025",
+        "nota": "77046",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -50.0,
+        "total_despesas": 0.5,
+        "irrf": 0.0,
+        "liquido": -50.5
+      },
+      {
+        "data": "30/12/2025",
+        "nota": "86841",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 92.0,
+        "total_despesas": 3.16,
+        "irrf": 0.88,
+        "liquido": 87.96
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "nome": "26_01_Nota.pdf",
+    "data": 1792513819.9098585,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "06/01/2026",
+        "nota": "117304",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 37.0,
+        "total_despesas": 5.52,
+        "irrf": 0.31,
+        "liquido": 31.17
+      },
+      {
+        "data": "07/01/2026",
+        "nota": "129912",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -65.0,
+        "total_despesas": 2.76,
+        "irrf": 0.0,
+        "liquido": -67.76
+      },
+      {
+        "data": "08/01/2026",
+        "nota": "142594",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 52.0,
+        "total_despesas": 0.5,
+        "irrf": 0.51,
+        "liquido": 50.99
+      },
+      {
+        "data": "09/01/2026",
+        "nota": "155360",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -98.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -99.5
+      },
+      {
+        "data": "12/01/2026",
+        "nota": "167719",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -70.0,
+        "total_despesas": 0.5,
+        "irrf": 0.0,
+        "liquido": -70.5
+      },
+      {
+        "data": "13/01/2026",
+        "nota": "180709",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -97.0,
+        "total_despesas": 7.02,
+        "irrf": 0.0,
+        "liquido": -104.02
+      },
+      {
+        "data": "14/01/2026",
+        "nota": "193738",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 14.0,
+        "total_despesas": 1.5,
+        "irrf": 0.12,
+        "liquido": 12.38
+      },
+      {
+        "data": "15/01/2026",
+        "nota": "206761",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -51.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -52.0
+      },
+      {
+        "data": "16/01/2026",
+        "nota": "219365",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 18.0,
+        "total_despesas": 1.0,
+        "irrf": 0.17,
+        "liquido": 16.83
+      },
+      {
+        "data": "19/01/2026",
+        "nota": "231236",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -49.0,
+        "total_despesas": 3.76,
+        "irrf": 0.0,
+        "liquido": -52.76
+      },
+      {
+        "data": "20/01/2026",
+        "nota": "243466",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 62.0,
+        "total_despesas": 2.0,
+        "irrf": 0.6,
+        "liquido": 59.4
+      },
+      {
+        "data": "21/01/2026",
+        "nota": "256495",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 92.0,
+        "total_despesas": 1.0,
+        "irrf": 0.91,
+        "liquido": 90.09
+      },
+      {
+        "data": "22/01/2026",
+        "nota": "269210",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 35.0,
+        "total_despesas": 1.0,
+        "irrf": 0.34,
+        "liquido": 33.66
+      },
+      {
+        "data": "23/01/2026",
+        "nota": "281755",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 5.0,
+        "total_despesas": 2.76,
+        "irrf": 0.02,
+        "liquido": 2.22
+      },
+      {
+        "data": "26/01/2026",
+        "nota": "293598",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 46.0,
+        "total_despesas": 3.0,
+        "irrf": 0.43,
+        "liquido": 42.57
+      },
+      {
+        "data": "27/01/2026",
+        "nota": "305986",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -63.0,
+        "total_despesas": 3.5,
+        "irrf": 0.0,
+        "liquido": -66.5
+      },
+      {
+        "data": "28/01/2026",
+        "nota": "318635",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -28.0,
+        "total_despesas": 4.0,
+        "irrf": 0.0,
+        "liquido": -32.0
+      },
+      {
+        "data": "29/01/2026",
+        "nota": "331050",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 31.0,
+        "total_despesas": 11.52,
+        "irrf": 0.19,
+        "liquido": 19.29
+      },
+      {
+        "data": "30/01/2026",
+        "nota": "343175",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -119.0,
+        "total_despesas": 21.06,
+        "irrf": 0.0,
+        "liquido": -140.06
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "nome": "26_02(1)_Nota.pdf",
+    "data": 1792513904.3419113,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "02/02/2026",
+        "nota": "354801",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 62.0,
+        "total_despesas": 1.5,
+        "irrf": 0.6,
+        "liquido": 59.9
+      },
+      {
+        "data": "03/02/2026",
+        "nota": "366842",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -15.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -16.5
+      },
+      {
+        "data": "04/02/2026",
+        "nota": "379242",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 50.0,
+        "total_despesas": 0.5,
+        "irrf": 0.49,
+        "liquido": 49.01
+      },
+      {
+        "data": "05/02/2026",
+        "nota": "391587",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 61.0,
+        "total_despesas": 0.5,
+        "irrf": 0.6,
+        "liquido": 59.9
+      },
+      {
+        "data": "06/02/2026",
+        "nota": "403880",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -24.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -25.0
+      },
+      {
+        "data": "10/02/2026",
+        "nota": "428483",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -60.2,
+        "total_despesas": 5.66,
+        "irrf": 0.0,
+        "liquido": -65.86
+      },
+      {
+        "data": "11/02/2026",
+        "nota": "440986",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 15.0,
+        "total_despesas": 4.0,
+        "irrf": 0.11,
+        "liquido": 10.89
+      },
+      {
+        "data": "12/02/2026",
+        "nota": "453184",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -77.0,
+        "total_despesas": 3.64,
+        "irrf": 0.0,
+        "liquido": -80.64
+      },
+      {
+        "data": "13/02/2026",
+        "nota": "465205",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 26.0,
+        "total_despesas": 0.5,
+        "irrf": 0.25,
+        "liquido": 25.25
+      },
+      {
+        "data": "19/02/2026",
+        "nota": "483691",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -5.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -6.0
+      },
+      {
+        "data": "20/02/2026",
+        "nota": "495104",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -43.0,
+        "total_despesas": 2.0,
+        "irrf": 0.0,
+        "liquido": -45.0
+      },
+      {
+        "data": "23/02/2026",
+        "nota": "506477",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -76.0,
+        "total_despesas": 6.28,
+        "irrf": 0.0,
+        "liquido": -82.28
+      },
+      {
+        "data": "24/02/2026",
+        "nota": "518441",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 30.0,
+        "total_despesas": 0.5,
+        "irrf": 0.29,
+        "liquido": 29.21
+      },
+      {
+        "data": "25/02/2026",
+        "nota": "530380",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 50.0,
+        "total_despesas": 0.5,
+        "irrf": 0.49,
+        "liquido": 49.01
+      },
+      {
+        "data": "26/02/2026",
+        "nota": "542249",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -62.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -63.5
+      },
+      {
+        "data": "27/02/2026",
+        "nota": "553956",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -88.0,
+        "total_despesas": 2.5,
+        "irrf": 0.0,
+        "liquido": -90.5
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "nome": "26_02_Nota.pdf",
+    "data": 1792513911.4522922,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "06/02/2026",
+        "nota": "639265",
+        "corretora": "Genial / 1885259",
+        "mercado": "B3 (Ações)",
+        "valor_negocios": -1.0,
+        "total_despesas": 0.92,
+        "irrf": 0.0,
+        "liquido": -1.92
+      },
+      {
+        "data": "12/02/2026",
+        "nota": "691385",
+        "corretora": "Genial / 1885259",
+        "mercado": "B3 (Ações)",
+        "valor_negocios": 20.0,
+        "total_despesas": 1.21,
+        "irrf": 0.18,
+        "liquido": 18.61
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "nome": "26_03(1)_Nota.pdf",
+    "data": 1792513916.9221926,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "02/03/2026",
+        "nota": "565602",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -56.0,
+        "total_despesas": 2.5,
+        "irrf": 0.0,
+        "liquido": -58.5
+      },
+      {
+        "data": "03/03/2026",
+        "nota": "578047",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 101.0,
+        "total_despesas": 0.5,
+        "irrf": 1.0,
+        "liquido": 99.5
+      },
+      {
+        "data": "04/03/2026",
+        "nota": "590668",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 60.0,
+        "total_despesas": 0.5,
+        "irrf": 0.59,
+        "liquido": 58.91
+      },
+      {
+        "data": "05/03/2026",
+        "nota": "602968",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -25.0,
+        "total_despesas": 0.5,
+        "irrf": 0.0,
+        "liquido": -25.5
+      },
+      {
+        "data": "06/03/2026",
+        "nota": "615251",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -42.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -43.5
+      },
+      {
+        "data": "09/03/2026",
+        "nota": "627085",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -234.0,
+        "total_despesas": 4.0,
+        "irrf": 0.0,
+        "liquido": -238.0
+      },
+      {
+        "data": "10/03/2026",
+        "nota": "639541",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -88.0,
+        "total_despesas": 7.7,
+        "irrf": 0.0,
+        "liquido": -95.7
+      },
+      {
+        "data": "11/03/2026",
+        "nota": "651878",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -26.0,
+        "total_despesas": 0.5,
+        "irrf": 0.0,
+        "liquido": -26.5
+      },
+      {
+        "data": "12/03/2026",
+        "nota": "663884",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 55.0,
+        "total_despesas": 2.1,
+        "irrf": 0.52,
+        "liquido": 52.38
+      },
+      {
+        "data": "13/03/2026",
+        "nota": "675855",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 9.0,
+        "total_despesas": 3.6,
+        "irrf": 0.05,
+        "liquido": 5.35
+      },
+      {
+        "data": "16/03/2026",
+        "nota": "687332",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -48.0,
+        "total_despesas": 5.1,
+        "irrf": 0.0,
+        "liquido": -53.1
+      },
+      {
+        "data": "17/03/2026",
+        "nota": "699070",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 122.0,
+        "total_despesas": 3.1,
+        "irrf": 1.18,
+        "liquido": 117.72
+      },
+      {
+        "data": "18/03/2026",
+        "nota": "710823",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -23.0,
+        "total_despesas": 4.1,
+        "irrf": 0.0,
+        "liquido": -27.1
+      },
+      {
+        "data": "19/03/2026",
+        "nota": "722551",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -160.0,
+        "total_despesas": 16.1,
+        "irrf": 0.0,
+        "liquido": -176.1
+      },
+      {
+        "data": "20/03/2026",
+        "nota": "734247",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -41.0,
+        "total_despesas": 0.5,
+        "irrf": 0.0,
+        "liquido": -41.5
+      },
+      {
+        "data": "23/03/2026",
+        "nota": "745684",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 11.0,
+        "total_despesas": 0.5,
+        "irrf": 0.1,
+        "liquido": 10.4
+      },
+      {
+        "data": "24/03/2026",
+        "nota": "757559",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 6.0,
+        "total_despesas": 1.5,
+        "irrf": 0.04,
+        "liquido": 4.46
+      },
+      {
+        "data": "25/03/2026",
+        "nota": "769481",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -18.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -19.0
+      },
+      {
+        "data": "26/03/2026",
+        "nota": "781154",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 96.0,
+        "total_despesas": 0.5,
+        "irrf": 0.95,
+        "liquido": 94.55
+      },
+      {
+        "data": "27/03/2026",
+        "nota": "792621",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -18.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -19.5
+      },
+      {
+        "data": "30/03/2026",
+        "nota": "803658",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 14.0,
+        "total_despesas": 2.0,
+        "irrf": 0.12,
+        "liquido": 11.88
+      },
+      {
+        "data": "31/03/2026",
+        "nota": "815370",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -119.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -120.5
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "nome": "26_03_Nota.pdf",
+    "data": 1792513927.1620548,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "02/03/2026",
+        "nota": "821442",
+        "corretora": "Genial / 1885259",
+        "mercado": "B3 (Ações)",
+        "valor_negocios": 0.0,
+        "total_despesas": 1.87,
+        "irrf": 0.0,
+        "liquido": -1.87
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "nome": "26_04_Nota.pdf",
+    "data": 1792513957.3783307,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "01/04/2026",
+        "nota": "827389",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -6.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -7.0
+      },
+      {
+        "data": "02/04/2026",
+        "nota": "839251",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 122.0,
+        "total_despesas": 1.0,
+        "irrf": 1.21,
+        "liquido": 119.79
+      },
+      {
+        "data": "06/04/2026",
+        "nota": "850854",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -89.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -90.5
+      },
+      {
+        "data": "07/04/2026",
+        "nota": "862724",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -23.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -24.0
+      },
+      {
+        "data": "08/04/2026",
+        "nota": "875224",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -62.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -63.0
+      },
+      {
+        "data": "09/04/2026",
+        "nota": "887861",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 51.0,
+        "total_despesas": 0.5,
+        "irrf": 0.5,
+        "liquido": 50.0
+      },
+      {
+        "data": "10/04/2026",
+        "nota": "900292",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -34.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -35.0
+      },
+      {
+        "data": "13/04/2026",
+        "nota": "912458",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -53.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -54.0
+      },
+      {
+        "data": "14/04/2026",
+        "nota": "924576",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 22.0,
+        "total_despesas": 1.0,
+        "irrf": 0.21,
+        "liquido": 20.79
+      },
+      {
+        "data": "15/04/2026",
+        "nota": "936902",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 65.0,
+        "total_despesas": 1.0,
+        "irrf": 0.64,
+        "liquido": 63.36
+      },
+      {
+        "data": "16/04/2026",
+        "nota": "948922",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -36.0,
+        "total_despesas": 2.0,
+        "irrf": 0.0,
+        "liquido": -38.0
+      },
+      {
+        "data": "17/04/2026",
+        "nota": "960828",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 1.0,
+        "total_despesas": 0.5,
+        "irrf": 0.0,
+        "liquido": 0.5
+      },
+      {
+        "data": "20/04/2026",
+        "nota": "972377",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 52.0,
+        "total_despesas": 0.5,
+        "irrf": 0.51,
+        "liquido": 50.99
+      },
+      {
+        "data": "22/04/2026",
+        "nota": "983203",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 9.0,
+        "total_despesas": 1.0,
+        "irrf": 0.08,
+        "liquido": 7.92
+      },
+      {
+        "data": "23/04/2026",
+        "nota": "1037",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -53.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -54.0
+      },
+      {
+        "data": "24/04/2026",
+        "nota": "12835",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 76.0,
+        "total_despesas": 1.0,
+        "irrf": 0.75,
+        "liquido": 74.25
+      },
+      {
+        "data": "27/04/2026",
+        "nota": "24278",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -176.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -177.5
+      },
+      {
+        "data": "28/04/2026",
+        "nota": "36038",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 57.0,
+        "total_despesas": 3.5,
+        "irrf": 0.53,
+        "liquido": 52.97
+      },
+      {
+        "data": "29/04/2026",
+        "nota": "47899",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -17.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -18.5
+      },
+      {
+        "data": "30/04/2026",
+        "nota": "59434",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -184.0,
+        "total_despesas": 6.0,
+        "irrf": 0.0,
+        "liquido": -190.0
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "nome": "26_05_Nota.pdf",
+    "data": 1792514149.2920403,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "04/05/2026",
+        "nota": "71037",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -251.0,
+        "total_despesas": 4.5,
+        "irrf": 0.0,
+        "liquido": -255.5
+      },
+      {
+        "data": "05/05/2026",
+        "nota": "83259",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -118.0,
+        "total_despesas": 4.0,
+        "irrf": 0.0,
+        "liquido": -122.0
+      },
+      {
+        "data": "06/05/2026",
+        "nota": "95703",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 86.0,
+        "total_despesas": 4.04,
+        "irrf": 0.81,
+        "liquido": 81.15
+      },
+      {
+        "data": "07/05/2026",
+        "nota": "108293",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -47.0,
+        "total_despesas": 5.0,
+        "irrf": 0.0,
+        "liquido": -52.0
+      },
+      {
+        "data": "08/05/2026",
+        "nota": "120685",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -41.0,
+        "total_despesas": 6.04,
+        "irrf": 0.0,
+        "liquido": -47.04
+      },
+      {
+        "data": "20/05/2026",
+        "nota": "217260",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 61.0,
+        "total_despesas": 0.5,
+        "irrf": 0.6,
+        "liquido": 59.9
+      },
+      {
+        "data": "25/05/2026",
+        "nota": "251604",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -20.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -21.0
+      },
+      {
+        "data": "26/05/2026",
+        "nota": "262785",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -6.0,
+        "total_despesas": 4.04,
+        "irrf": 0.0,
+        "liquido": -10.04
+      },
+      {
+        "data": "27/05/2026",
+        "nota": "274549",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 80.0,
+        "total_despesas": 2.04,
+        "irrf": 0.77,
+        "liquido": 77.19
+      },
+      {
+        "data": "28/05/2026",
+        "nota": "286293",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -48.0,
+        "total_despesas": 3.04,
+        "irrf": 0.0,
+        "liquido": -51.04
+      },
+      {
+        "data": "29/05/2026",
+        "nota": "297828",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 48.0,
+        "total_despesas": 0.5,
+        "irrf": 0.47,
+        "liquido": 47.03
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "nome": "25_12_Nota.pdf",
+    "data": 1792577301.8058066,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "05/12/2025",
+        "nota": "122207",
+        "corretora": "Genial / 1885259",
+        "mercado": "B3 (Ações)",
+        "valor_negocios": 38.0,
+        "total_despesas": 2.1,
+        "irrf": 0.35,
+        "liquido": 35.55
+      },
+      {
+        "data": "08/12/2025",
+        "nota": "137872",
+        "corretora": "Genial / 1885259",
+        "mercado": "B3 (Ações)",
+        "valor_negocios": 0.0,
+        "total_despesas": 0.98,
+        "irrf": 0.0,
+        "liquido": -0.98
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "nome": "26_06_Nota.pdf",
+    "data": 1792514172.511988,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "05/06/2026",
+        "nota": "346579",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -158.0,
+        "total_despesas": 3.5,
+        "irrf": 0.0,
+        "liquido": -161.5
+      },
+      {
+        "data": "08/06/2026",
+        "nota": "357950",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 100.0,
+        "total_despesas": 3.5,
+        "irrf": 0.96,
+        "liquido": 95.54
+      },
+      {
+        "data": "09/06/2026",
+        "nota": "370599",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 50.0,
+        "total_despesas": 2.06,
+        "irrf": 0.47,
+        "liquido": 47.47
+      },
+      {
+        "data": "10/06/2026",
+        "nota": "383223",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -95.0,
+        "total_despesas": 4.62,
+        "irrf": 0.0,
+        "liquido": -99.62
+      },
+      {
+        "data": "11/06/2026",
+        "nota": "395388",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -34.0,
+        "total_despesas": 9.18,
+        "irrf": 0.0,
+        "liquido": -43.18
+      },
+      {
+        "data": "12/06/2026",
+        "nota": "407569",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -73.0,
+        "total_despesas": 6.06,
+        "irrf": 0.0,
+        "liquido": -79.06
+      },
+      {
+        "data": "16/06/2026",
+        "nota": "431068",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -68.0,
+        "total_despesas": 5.12,
+        "irrf": 0.0,
+        "liquido": -73.12
+      },
+      {
+        "data": "17/06/2026",
+        "nota": "443353",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 51.0,
+        "total_despesas": 2.56,
+        "irrf": 0.48,
+        "liquido": 47.96
+      },
+      {
+        "data": "18/06/2026",
+        "nota": "455142",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 25.0,
+        "total_despesas": 0.5,
+        "irrf": 0.24,
+        "liquido": 24.26
+      },
+      {
+        "data": "19/06/2026",
+        "nota": "466738",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 0.0,
+        "total_despesas": 2.5,
+        "irrf": 0.0,
+        "liquido": -2.5
+      },
+      {
+        "data": "22/06/2026",
+        "nota": "477461",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 138.0,
+        "total_despesas": 1.0,
+        "irrf": 1.37,
+        "liquido": 135.63
+      },
+      {
+        "data": "23/06/2026",
+        "nota": "489166",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 37.0,
+        "total_despesas": 2.56,
+        "irrf": 0.34,
+        "liquido": 34.1
+      },
+      {
+        "data": "24/06/2026",
+        "nota": "500929",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 4.0,
+        "total_despesas": 1.0,
+        "irrf": 0.03,
+        "liquido": 2.97
+      },
+      {
+        "data": "25/06/2026",
+        "nota": "512459",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 54.0,
+        "total_despesas": 1.0,
+        "irrf": 0.53,
+        "liquido": 52.47
+      },
+      {
+        "data": "26/06/2026",
+        "nota": "523739",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 116.0,
+        "total_despesas": 1.0,
+        "irrf": 1.15,
+        "liquido": 113.85
+      },
+      {
+        "data": "29/06/2026",
+        "nota": "534741",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 1.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -0.5
+      },
+      {
+        "data": "30/06/2026",
+        "nota": "545599",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -22.0,
+        "total_despesas": 4.0,
+        "irrf": 0.0,
+        "liquido": -26.0
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "nome": "26_07_Nota.pdf",
+    "data": 1792514178.4685314,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "01/07/2026",
+        "nota": "557239",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 30.0,
+        "total_despesas": 2.0,
+        "irrf": 0.28,
+        "liquido": 27.72
+      },
+      {
+        "data": "02/07/2026",
+        "nota": "569035",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 97.0,
+        "total_despesas": 1.0,
+        "irrf": 0.96,
+        "liquido": 95.04
+      },
+      {
+        "data": "03/07/2026",
+        "nota": "580830",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 46.0,
+        "total_despesas": 1.5,
+        "irrf": 0.44,
+        "liquido": 44.06
+      },
+      {
+        "data": "06/07/2026",
+        "nota": "591594",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 38.0,
+        "total_despesas": 1.0,
+        "irrf": 0.37,
+        "liquido": 36.63
+      },
+      {
+        "data": "07/07/2026",
+        "nota": "603506",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 62.0,
+        "total_despesas": 0.5,
+        "irrf": 0.61,
+        "liquido": 60.89
+      },
+      {
+        "data": "10/07/2026",
+        "nota": "639092",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 250.0,
+        "total_despesas": 0.5,
+        "irrf": 2.49,
+        "liquido": 247.01
+      },
+      {
+        "data": "14/07/2026",
+        "nota": "662434",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 62.0,
+        "total_despesas": 1.0,
+        "irrf": 0.61,
+        "liquido": 60.39
+      },
+      {
+        "data": "15/07/2026",
+        "nota": "674151",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 60.0,
+        "total_despesas": 0.5,
+        "irrf": 0.59,
+        "liquido": 58.91
+      },
+      {
+        "data": "16/07/2026",
+        "nota": "685722",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -149.0,
+        "total_despesas": 8.0,
+        "irrf": 0.0,
+        "liquido": -157.0
+      },
+      {
+        "data": "17/07/2026",
+        "nota": "697230",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -72.0,
+        "total_despesas": 0.5,
+        "irrf": 0.0,
+        "liquido": -72.5
+      },
+      {
+        "data": "20/07/2026",
+        "nota": "708363",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 105.0,
+        "total_despesas": 1.0,
+        "irrf": 1.04,
+        "liquido": 102.96
+      },
+      {
+        "data": "21/07/2026",
+        "nota": "719688",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 10.0,
+        "total_despesas": 1.5,
+        "irrf": 0.08,
+        "liquido": 8.42
+      },
+      {
+        "data": "22/07/2026",
+        "nota": "731234",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -23.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -24.5
+      },
+      {
+        "data": "23/07/2026",
+        "nota": "742746",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 81.0,
+        "total_despesas": 1.5,
+        "irrf": 0.79,
+        "liquido": 78.71
+      },
+      {
+        "data": "24/07/2026",
+        "nota": "753810",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 26.0,
+        "total_despesas": 0.5,
+        "irrf": 0.25,
+        "liquido": 25.25
+      },
+      {
+        "data": "28/07/2026",
+        "nota": "775237",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 22.0,
+        "total_despesas": 2.5,
+        "irrf": 0.19,
+        "liquido": 19.31
+      },
+      {
+        "data": "29/07/2026",
+        "nota": "786317",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 1.0,
+        "total_despesas": 0.5,
+        "irrf": 0.0,
+        "liquido": 0.5
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "nome": "26_08_Nota.pdf",
+    "data": 1792577938.0994432,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "03/08/2026",
+        "nota": "815247",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 80.0,
+        "total_despesas": 0.5,
+        "irrf": 0.79,
+        "liquido": 78.71
+      },
+      {
+        "data": "04/08/2026",
+        "nota": "826748",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 62.0,
+        "total_despesas": 1.0,
+        "irrf": 0.61,
+        "liquido": 60.39
+      },
+      {
+        "data": "05/08/2026",
+        "nota": "838609",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 89.0,
+        "total_despesas": 1.5,
+        "irrf": 0.87,
+        "liquido": 86.63
+      },
+      {
+        "data": "06/08/2026",
+        "nota": "850386",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 4.0,
+        "total_despesas": 4.0,
+        "irrf": 0.0,
+        "liquido": 0.0
+      },
+      {
+        "data": "11/08/2026",
+        "nota": "885204",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 94.0,
+        "total_despesas": 1.0,
+        "irrf": 0.93,
+        "liquido": 92.07
+      },
+      {
+        "data": "13/08/2026",
+        "nota": "908344",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -34.0,
+        "total_despesas": 5.56,
+        "irrf": 0.0,
+        "liquido": -39.56
+      },
+      {
+        "data": "14/08/2026",
+        "nota": "919665",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -323.0,
+        "total_despesas": 10.0,
+        "irrf": 0.0,
+        "liquido": -333.0
+      },
+      {
+        "data": "17/08/2026",
+        "nota": "930737",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -70.0,
+        "total_despesas": 1.0,
+        "irrf": 0.0,
+        "liquido": -71.0
+      },
+      {
+        "data": "18/08/2026",
+        "nota": "941971",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 30.0,
+        "total_despesas": 1.5,
+        "irrf": 0.28,
+        "liquido": 28.22
+      },
+      {
+        "data": "19/08/2026",
+        "nota": "953362",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 107.0,
+        "total_despesas": 1.0,
+        "irrf": 1.06,
+        "liquido": 104.94
+      },
+      {
+        "data": "20/08/2026",
+        "nota": "964858",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 102.0,
+        "total_despesas": 2.0,
+        "irrf": 1.0,
+        "liquido": 99.0
+      },
+      {
+        "data": "21/08/2026",
+        "nota": "976150",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -41.0,
+        "total_despesas": 3.0,
+        "irrf": 0.0,
+        "liquido": -44.0
+      },
+      {
+        "data": "24/08/2026",
+        "nota": "987139",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -150.0,
+        "total_despesas": 1.5,
+        "irrf": 0.0,
+        "liquido": -151.5
+      },
+      {
+        "data": "26/08/2026",
+        "nota": "12044",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 170.0,
+        "total_despesas": 2.0,
+        "irrf": 1.68,
+        "liquido": 166.32
+      },
+      {
+        "data": "27/08/2026",
+        "nota": "23045",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -604.0,
+        "total_despesas": 7.0,
+        "irrf": 0.0,
+        "liquido": -611.0
+      },
+      {
+        "data": "28/08/2026",
+        "nota": "34023",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 205.0,
+        "total_despesas": 2.0,
+        "irrf": 2.03,
+        "liquido": 200.97
+      },
+      {
+        "data": "31/08/2026",
+        "nota": "44721",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -108.0,
+        "total_despesas": 3.0,
+        "irrf": 0.0,
+        "liquido": -111.0
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "nome": "26_09_Nota.pdf",
+    "data": 1792514922.9260027,
+    "selecionado": false,
+    "notas": [
+      {
+        "data": "01/09/2026",
+        "nota": "55755",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 161.0,
+        "total_despesas": 1.0,
+        "irrf": 1.6,
+        "liquido": 158.4
+      },
+      {
+        "data": "03/09/2026",
+        "nota": "79199",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 203.0,
+        "total_despesas": 1.0,
+        "irrf": 2.02,
+        "liquido": 199.98
+      },
+      {
+        "data": "04/09/2026",
+        "nota": "90634",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -234.0,
+        "total_despesas": 3.0,
+        "irrf": 0.0,
+        "liquido": -237.0
+      },
+      {
+        "data": "08/09/2026",
+        "nota": "101756",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 12.0,
+        "total_despesas": 2.0,
+        "irrf": 0.1,
+        "liquido": 9.9
+      },
+      {
+        "data": "09/09/2026",
+        "nota": "113616",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 20.0,
+        "total_despesas": 1.0,
+        "irrf": 0.19,
+        "liquido": 18.81
+      },
+      {
+        "data": "10/09/2026",
+        "nota": "125603",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -178.0,
+        "total_despesas": 14.74,
+        "irrf": 0.0,
+        "liquido": -192.74
+      },
+      {
+        "data": "11/09/2026",
+        "nota": "137480",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -61.0,
+        "total_despesas": 5.62,
+        "irrf": 0.0,
+        "liquido": -66.62
+      },
+      {
+        "data": "16/09/2026",
+        "nota": "171638",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 18.0,
+        "total_despesas": 1.0,
+        "irrf": 0.17,
+        "liquido": 16.83
+      },
+      {
+        "data": "23/09/2026",
+        "nota": "227977",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 18.0,
+        "total_despesas": 2.0,
+        "irrf": 0.16,
+        "liquido": 15.84
+      },
+      {
+        "data": "24/09/2026",
+        "nota": "239272",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": -144.0,
+        "total_despesas": 3.0,
+        "irrf": 0.0,
+        "liquido": -147.0
+      },
+      {
+        "data": "25/09/2026",
+        "nota": "250280",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 5.0,
+        "total_despesas": 2.5,
+        "irrf": 0.02,
+        "liquido": 2.48
+      },
+      {
+        "data": "28/09/2026",
+        "nota": "260932",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 46.0,
+        "total_despesas": 3.0,
+        "irrf": 0.43,
+        "liquido": 42.57
+      },
+      {
+        "data": "29/09/2026",
+        "nota": "271916",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 60.0,
+        "total_despesas": 1.0,
+        "irrf": 0.59,
+        "liquido": 58.41
+      },
+      {
+        "data": "30/09/2026",
+        "nota": "283022",
+        "corretora": "Genial / 1885259",
+        "mercado": "BM&F (WIN/WDO)",
+        "valor_negocios": 129.0,
+        "total_despesas": 4.0,
+        "irrf": 1.25,
+        "liquido": 123.75
+      }
+    ]
+  }
+]

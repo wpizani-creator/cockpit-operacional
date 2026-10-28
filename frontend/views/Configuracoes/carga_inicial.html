@@ -1,0 +1,419 @@
+<!-- ========================================================================================= -->
+<!-- ARQUIVO: frontend/views/Trade/carga_inicial.html                                          -->
+<!-- CONTEXTO: Carga Inicial & Conciliação - Atualizado com as Novas Colunas Analíticas        -->
+<!-- ========================================================================================= -->
+<div class="space-y-6">
+    <!-- Cabeçalho da Seção -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-lg flex justify-between items-center">
+        <div>
+            <div class="flex items-center gap-2.5 mb-1">
+                <div class="bg-blue-600/20 text-blue-400 p-2 rounded-lg border border-blue-500/30">
+                    <i class="fa-solid fa-file-import text-base"></i>
+                </div>
+                <h1 class="text-lg font-bold text-white tracking-wide">Módulo de Carga Inicial & Conciliação</h1>
+            </div>
+            <p class="text-xs text-gray-400">Gerenciamento, exportação e importação de bases por conta operacional com espelhamento real</p>
+        </div>
+    </div>
+
+    <!-- Card de Parâmetros de Importação/Exportação -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-lg">
+        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-800 text-sm font-semibold text-gray-200">
+            <i class="fa-solid fa-sliders text-blue-500"></i> Parâmetros de Operação por Conta
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Conta Operacional -->
+            <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1.5">Conta Operacional</label>
+                <select id="selectContaOperacional" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500 transition">
+                    <option value="">Selecione a conta operacional...</option>
+                </select>
+            </div>
+
+            <!-- Plataforma de Origem -->
+            <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1.5">Plataforma de Origem</label>
+                <select id="selectPlataforma" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500 transition">
+                    <option value="profit">ProfitChart (Nelogica)</option>
+                    <option value="mt5">MetaTrader 5</option>
+                    <option value="b3">B3 (Bolsa)</option>
+                    <option value="outro">Outro Formato / Planilha</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Área de Drag and Drop de Arquivo -->
+        <div class="border-2 border-dashed border-gray-800 hover:border-blue-500/50 bg-gray-950/50 rounded-xl p-8 text-center cursor-pointer transition group mb-6" id="dropZone">
+            <input type="file" id="fileInput" accept=".csv, .txt, .xlsx" class="hidden">
+            <div class="text-blue-500 text-2xl mb-2 group-hover:scale-110 transition transform">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <p class="text-xs font-medium text-gray-300 mb-1">Arraste o arquivo CSV tratado aqui ou clique para selecionar</p>
+            <p class="text-[10px] text-gray-500">Suporta arquivos delimitados por ponto e vírgula (;) ou vírgula (,)</p>
+        </div>
+
+        <!-- Ações do Fluxo -->
+        <div class="flex flex-wrap justify-between items-center gap-3 pt-2 border-t border-gray-800">
+            <div class="text-xs text-gray-400">
+                <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i> Sincronizado com o Módulo de Operações (Extração Real).
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="exportarCSVReal()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium text-xs px-4 py-2.5 rounded-lg border border-gray-700 transition flex items-center gap-2 shadow">
+                    <i class="fa-solid fa-file-arrow-down text-emerald-400"></i> Exportar CSV Real
+                </button>
+                <button onclick="processarImportacao()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs px-5 py-2.5 rounded-lg shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-arrow-up"></i> Importar CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel de Status do Fluxo de Cargas -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-800">
+            <div class="flex items-center gap-2 text-sm font-semibold text-gray-200">
+                <i class="fa-solid fa-list-check text-emerald-500"></i> Painel de Status do Fluxo
+            </div>
+            <span class="text-[10px] bg-gray-800 text-gray-400 px-2.5 py-1 rounded-md border border-gray-700">Monitoramento Ativo</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="text-gray-400 border-b border-gray-800 bg-gray-950/40">
+                        <th class="py-3 px-4 font-medium">DATA / HORA</th>
+                        <th class="py-3 px-4 font-medium">CONTA OPERACIONAL</th>
+                        <th class="py-3 px-4 font-medium">STATUS EXPORTAÇÃO</th>
+                        <th class="py-3 px-4 font-medium">STATUS IMPORTAÇÃO</th>
+                        <th class="py-3 px-4 font-medium text-right">AÇÕES</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaStatusFluxo" class="divide-y divide-gray-800 text-gray-300">
+                    <!-- Preenchido dinamicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY_FLUXO = 'cockpit_fluxo_status_v1';
+    const STORAGE_KEY_TRADES = 'trades_importados';
+
+    function obterDadosOperacoesReais() {
+        try {
+            let dados = JSON.parse(localStorage.getItem(STORAGE_KEY_TRADES));
+            if (dados && Array.isArray(dados)) return dados;
+        } catch(e) {}
+        return [];
+    }
+
+    function carregarHistoricoFluxo() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY_FLUXO)) || [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function salvarHistoricoFluxo(historico) {
+        localStorage.setItem(STORAGE_KEY_FLUXO, JSON.stringify(historico));
+    }
+
+    function renderizarPainelStatus() {
+        const tbody = document.getElementById('tabelaStatusFluxo');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        const historicoFluxo = carregarHistoricoFluxo();
+
+        if (historicoFluxo.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-gray-500">Nenhum registo de fluxo de carga encontrado.</td></tr>`;
+            return;
+        }
+
+        historicoFluxo.forEach(item => {
+            const badgeExp = item.exportacao === 'ok' 
+                ? '<span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800"><i class="fa-solid fa-check mr-1"></i> OK</span>'
+                : '<span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-800"><i class="fa-solid fa-clock mr-1"></i> Pendente</span>';
+
+            const badgeImp = item.importacao === 'ok' 
+                ? '<span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800"><i class="fa-solid fa-check mr-1"></i> OK</span>'
+                : '<span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-800"><i class="fa-solid fa-clock mr-1"></i> Pendente</span>';
+
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-950/30 transition';
+            tr.innerHTML = `
+                <td class="py-3 px-4 font-mono text-gray-400">${item.data}</td>
+                <td class="py-3 px-4 font-semibold text-gray-200">${item.conta}</td>
+                <td class="py-3 px-4">${badgeExp}</td>
+                <td class="py-3 px-4">${badgeImp}</td>
+                <td class="py-3 px-4 text-right">
+                    <button onclick="excluirFluxo('${item.conta}')" class="text-red-400 hover:text-red-300 bg-red-950/40 hover:bg-red-950 border border-red-900/50 px-2.5 py-1 rounded transition">
+                        <i class="fa-solid fa-trash-can text-[10px] mr-1"></i> Excluir
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function exportarCSVReal() {
+        const selectConta = document.getElementById('selectContaOperacional');
+        const contaSelecionada = selectConta ? selectConta.value : '';
+
+        if (!contaSelecionada) {
+            alert('Por favor, selecione uma Conta Operacional antes de exportar os dados.');
+            return;
+        }
+
+        const operacoesReais = obterDadosOperacoesReais().filter(op => String(op.conta || op.Conta) === String(contaSelecionada));
+        if (operacoesReais.length === 0) {
+            alert('Nenhuma operação encontrada para a conta selecionada na base oficial.');
+            return;
+        }
+
+        // Cabeçalho unificado com todas as colunas otimizadas e as novas colunas analíticas
+        const cabecalho = [
+            "CONTA", "ATIVO", "ABERTURA", "FECHAMENTO", "TEMPO", "QTD/LADO", 
+            "COMPRA", "VENDA", "RES. BRUTO", "RES. (%)", "CUSTO", "RES. LÍQ.", "TET",
+            "SETUP", "COMPL. SETUP", "TIMEFRAME", "TIPO ENTRADA", "TIPO ALVO", 
+            "TIPO SAÍDA", "CHECKLIST", "FALHAS", "MM TEND.", "VWAP TEND.", 
+            "RES/SUP PRÓX.", "MOMENTO", "PREÇO LIMITE"
+        ];
+
+        let dadosCSV = [cabecalho];
+
+        operacoesReais.forEach(op => {
+            const qtdStr = op.qtdCompra && op.qtdCompra !== '-' ? op.qtdCompra : (op.qtdVenda && op.qtdVenda !== '-' ? op.qtdVenda : '1');
+            const ladoLimpo = (op.lado || '').toUpperCase();
+            const ladoStr = ladoLimpo.includes('C') || ladoLimpo.includes('COMPRA') ? `${qtdStr} C` : `${qtdStr} V`;
+
+            dadosCSV.push([
+                op.conta || op.Conta || '',
+                op.ativo || op.Ativo || '',
+                op.abertura || op.Abertura || '',
+                op.fechamento || op.Fechamento || '',
+                op.tempoOperacao || '',
+                ladoStr,
+                op.precoCompra || op.Compra || '',
+                op.precoVenda || op.Venda || '',
+                op.resIntervaloBruto || op.resBruto || '',
+                op.resIntervaloPercentual || '',
+                op.custo || op.Custo || 'R$ 0,00',
+                op.resOperacao || op.resIntervaloBruto || '',
+                op.tet || '',
+                op.setup || '',
+                op.complementoSetup || '',
+                op.timeframe || '',
+                op.tipoEntrada || '',
+                op.tipoAlvo || '',
+                op.tipoSaida || '',
+                op.checklist || '',
+                op.falhas || '',
+                op.mmTend || '',
+                op.vwapTend || '',
+                op.resSupProx || '',
+                op.momento || '',
+                op.precoLimite || ''
+            ]);
+        });
+
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + dadosCSV.map(e => e.join(";")).join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Trade_Carga_Inicial_${contaSelecionada}_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        const agora = new Date().toLocaleString('pt-BR');
+        let historico = carregarHistoricoFluxo();
+        let registro = historico.find(i => String(i.conta) === String(contaSelecionada));
+        
+        if (registro) {
+            registro.data = agora;
+            registro.exportacao = 'ok';
+        } else {
+            historico.unshift({
+                conta: contaSelecionada,
+                data: agora,
+                exportacao: 'ok',
+                importacao: 'pendente'
+            });
+        }
+        salvarHistoricoFluxo(historico);
+        renderizarPainelStatus();
+
+        alert(`Arquivo "Trade_Carga_Inicial_${contaSelecionada}" exportado com sucesso com base nas ${operacoesReais.length} operações reais!`);
+    }
+
+    function processarImportacao() {
+        const selectConta = document.getElementById('selectContaOperacional');
+        const conta = selectConta ? selectConta.value : '';
+        const fileInput = document.getElementById('fileInput');
+
+        if (!conta) {
+            alert('Selecione uma Conta Operacional antes de importar.');
+            return;
+        }
+        if (!fileInput || fileInput.files.length === 0) {
+            alert('Selecione o arquivo CSV tratado para importar.');
+            return;
+        }
+
+        const arquivo = fileInput.files[0];
+        const reader = new FileReader();
+        reader.readAsText(arquivo, 'ISO-8859-1');
+
+        reader.onload = function(e) {
+            try {
+                const texto = e.target.result;
+                const linhas = texto.split(/\r\n|\n/).filter(l => l.trim() !== '');
+
+                if (linhas.length < 2) {
+                    alert('O arquivo CSV selecionado está vazio ou inválido.');
+                    return;
+                }
+
+                const separador = linhas[0].includes(';') ? ';' : ',';
+                const cabecalho = linhas[0].split(separador).map(h => h.replace(/^"|"$/g, '').trim().toUpperCase());
+
+                let tradesAtuais = JSON.parse(localStorage.getItem(STORAGE_KEY_TRADES) || '[]');
+                let novosProcessados = 0;
+
+                for (let i = 1; i < linhas.length; i++) {
+                    const valores = linhas[i].split(separador).map(v => v.replace(/^"|"$/g, '').trim());
+                    if (valores.length < 2) continue;
+
+                    let objTrade = { conta: conta };
+                    cabecalho.forEach((cab, idx) => {
+                        objTrade[cab] = valores[idx] || '';
+                    });
+
+                    const ativoVal = objTrade['ATIVO'] || 'WIN';
+                    const aberturaVal = objTrade['ABERTURA'] || '';
+
+                    const tradeNormalizado = {
+                        id: `${conta}_${ativoVal}_${aberturaVal}`,
+                        conta: conta,
+                        ativo: ativoVal,
+                        abertura: aberturaVal,
+                        fechamento: objTrade['FECHAMENTO'] || '',
+                        tempoOperacao: objTrade['TEMPO'] || '',
+                        lado: objTrade['QTD/LADO'] || objTrade['LADO'] || '',
+                        precoCompra: objTrade['COMPRA'] || '',
+                        precoVenda: objTrade['VENDA'] || '',
+                        resIntervaloBruto: objTrade['RES. BRUTO'] || 'R$ 0,00',
+                        resIntervaloPercentual: objTrade['RES. (%)'] || '',
+                        tet: objTrade['TET'] || '',
+                        setup: objTrade['SETUP'] || '',
+                        complementoSetup: objTrade['COMPL. SETUP'] || '',
+                        timeframe: objTrade['TIMEFRAME'] || '',
+                        tipoEntrada: objTrade['TIPO ENTRADA'] || '',
+                        tipoAlvo: objTrade['TIPO ALVO'] || '',
+                        tipoSaida: objTrade['TIPO SAÍDA'] || '',
+                        checklist: objTrade['CHECKLIST'] || '',
+                        falhas: objTrade['FALHAS'] || '',
+                        mmTend: objTrade['MM TEND.'] || '',
+                        vwapTend: objTrade['VWAP TEND.'] || '',
+                        resSupProx: objTrade['RES/SUP PRÓX.'] || '',
+                        momento: objTrade['MOMENTO'] || '',
+                        precoLimite: objTrade['PREÇO LIMITE'] || ''
+                    };
+
+                    const existe = tradesAtuais.some(t => t.id === tradeNormalizado.id);
+                    if (!existe && aberturaVal) {
+                        tradesAtuais.push(tradeNormalizado);
+                        novosProcessados++;
+                    }
+                }
+
+                localStorage.setItem(STORAGE_KEY_TRADES, JSON.stringify(tradesAtuais));
+
+                const agora = new Date().toLocaleString('pt-BR');
+                let historico = carregarHistoricoFluxo();
+                let registro = historico.find(i => String(i.conta) === String(conta));
+
+                if (registro) {
+                    registro.data = agora;
+                    registro.importacao = 'ok';
+                } else {
+                    historico.unshift({
+                        conta: conta,
+                        data: agora,
+                        exportacao: 'pendente',
+                        importacao: 'ok'
+                    });
+                }
+
+                salvarHistoricoFluxo(historico);
+                renderizarPainelStatus();
+
+                alert(`Importação concluída com sucesso! ${novosProcessados} registos conciliados com a base oficial de operações.`);
+
+            } catch (err) {
+                console.error("Erro ao processar importação CSV:", err);
+                alert("Erro ao ler o arquivo CSV. Verifique o formato e tente novamente.");
+            }
+        };
+    }
+
+    function excluirFluxo(contaId) {
+        if (confirm(`Deseja realmente excluir o registo da conta ${contaId} do painel?`)) {
+            let historico = carregarHistoricoFluxo();
+            historico = historico.filter(item => String(item.conta) !== String(contaId));
+            salvarHistoricoFluxo(historico);
+            renderizarPainelStatus();
+        }
+    }
+
+    (async function() {
+        // Carrega contas cadastradas no localStorage unificado do Cockpit (ou usa fallback padrão)
+        let contasCadastradas = [];
+        try {
+            const contasSalvas = JSON.parse(localStorage.getItem('cockpit_contas_v1') || localStorage.getItem('cockpit_contas') || '[]');
+            if (Array.isArray(contasSalvas) && contasSalvas.length > 0) {
+                contasCadastradas = contasSalvas.map(c => ({
+                    id: c.numero || c.id || c.conta,
+                    nome: `${c.numero || c.id || c.conta} (${c.corretora || c.mesa || 'Conta Operacional'})`
+                }));
+            }
+        } catch (e) {
+            console.error("Erro ao carregar contas cadastradas:", e);
+        }
+
+        if (contasCadastradas.length === 0) {
+            contasCadastradas = [
+                { id: '103050571', nome: '103050571 (5PI - Mesa Proprietária)' }
+            ];
+        }
+
+        const selectConta = document.getElementById('selectContaOperacional');
+        if (selectConta) {
+            contasCadastradas.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.nome;
+                selectConta.appendChild(opt);
+            });
+        }
+
+        renderizarPainelStatus();
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        if (dropZone && fileInput) {
+            dropZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    dropZone.querySelector('p').textContent = `Ficheiro selecionado: ${e.target.files[0].name}`;
+                    dropZone.classList.add('border-blue-500', 'bg-blue-950/10');
+                }
+            });
+        }
+    })();
+</script>

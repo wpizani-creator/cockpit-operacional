@@ -1,0 +1,237 @@
+<!-- ========================================================================================= -->
+<!-- ARQUIVO: index.html                                                                       -->
+<!-- CONTEXTO: Cockpit Operacional - Day Trade (Ponto de Entrada SPA e Navegação Modular)      -->
+<!-- ========================================================================================= -->
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cockpit Operacional - Day Trade [index.html]</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#0b0f19',
+                            950: '#030712'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dropdown-container {
+            position: relative;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 100%;
+            padding-top: 6px;
+            z-index: 50;
+        }
+        .dropdown-container:hover .dropdown-menu {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-[#0b0f19] text-gray-100 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Header / Barra Superior com identificação do arquivo -->
+    <header class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex justify-between items-center shadow-md relative z-40">
+        <div class="flex items-center gap-6">
+            <!-- Logo / Título -->
+            <div class="flex items-center gap-2.5">
+                <div class="bg-blue-600 p-1.5 rounded text-white text-xs shadow">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <span class="text-sm font-bold text-white tracking-wide">Cockpit Operacional</span>
+                <span class="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded font-mono">index.html</span>
+                <span class="text-[10px] bg-blue-600/30 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded font-semibold">Modo Pro</span>
+            </div>
+
+            <!-- Menu Superior em Formato de Pastas Dropdown -->
+            <nav class="flex items-center gap-1 text-xs">
+                
+                <!-- Pasta 1: Pré-Abertura & IA -->
+                <div class="dropdown-container">
+                    <button class="px-3 py-2 rounded text-gray-300 hover:text-white hover:bg-gray-800 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-folder text-amber-400"></i> Pré-Abertura & IA <i class="fa-solid fa-chevron-down text-[9px] text-gray-400 ml-0.5"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <div class="w-48 bg-gray-900 border border-gray-800 rounded-lg shadow-xl py-1.5">
+                            <a href="#" onclick="carregarModulo('analise-pre')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition">Análise Pré-Abertura</a>
+                            <a href="#" onclick="carregarModulo('insights-ia')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition">Insights de IA</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pasta 2: Trade -->
+                <div class="dropdown-container">
+                    <button class="px-3 py-2 rounded text-gray-300 hover:text-white hover:bg-gray-800 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-folder text-amber-400"></i> Trade <i class="fa-solid fa-chevron-down text-[9px] text-gray-400 ml-0.5"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <div class="w-56 bg-gray-900 border border-gray-800 rounded-lg shadow-xl py-1.5">
+                            <a href="#" onclick="carregarModulo('operacoes')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-2">
+                                <i class="fa-solid fa-table-list text-emerald-400"></i> Operações
+                            </a>
+                            <a href="#" onclick="carregarModulo('analise-trade')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-2">
+                                <i class="fa-solid fa-chart-line text-blue-400"></i> Análise e Playbook
+                            </a>
+                            <a href="#" onclick="carregarModulo('metas-trade')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-2">
+                                <i class="fa-solid fa-bullseye text-amber-400"></i> Metas & Risco
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pasta 3: Visão Geral & Histórico -->
+                <div class="dropdown-container">
+                    <button class="px-3 py-2 rounded text-gray-300 hover:text-white hover:bg-gray-800 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-folder text-amber-400"></i> Visão Geral & Histórico <i class="fa-solid fa-chevron-down text-[9px] text-gray-400 ml-0.5"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <div class="w-48 bg-gray-900 border border-gray-800 rounded-lg shadow-xl py-1.5">
+                            <a href="#" onclick="carregarModulo('relatorio-operacional')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition">Relatório Operacional</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pasta 4: Configurações & Cadastros -->
+                <div class="dropdown-container">
+                    <button class="px-3 py-2 rounded text-gray-300 hover:text-white hover:bg-gray-800 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-folder text-amber-400"></i> Configurações & Cadastros <i class="fa-solid fa-chevron-down text-[9px] text-gray-400 ml-0.5"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <div class="w-64 bg-gray-900 border border-gray-800 rounded-lg shadow-xl py-1.5">
+                            <a href="#" onclick="carregarModulo('contas')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-2">
+                                <i class="fa-solid fa-wallet text-emerald-400"></i> Contas & Mesas
+                            </a>
+                            <a href="#" onclick="carregarModulo('setup')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-2">
+                                <i class="fa-solid fa-sliders text-blue-400"></i> Parâmetros & Setups
+                            </a>
+                            <a href="#" onclick="carregarModulo('calendario')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-days text-indigo-400"></i> Calendário Operacional
+                            </a>
+                            <a href="#" onclick="carregarModulo('central_cargas')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-2">
+                                <i class="fa-solid fa-database text-cyan-400"></i> Central de Cargas & Importação CSV
+                            </a>
+                            <a href="#" onclick="carregarModulo('configurar-indicadores')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-2">
+                                <i class="fa-solid fa-chart-bar text-purple-400"></i> Configurar Indicadores
+                            </a>
+                            <a href="#" onclick="carregarModulo('backup-restauracao')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-2">
+                                <i class="fa-solid fa-hard-drive text-amber-400"></i> Backup & Restauração LocalStorage
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pasta 5: Fiscal & IR (Restrito / Avançado) -->
+                <div class="dropdown-container ml-1">
+                    <button class="px-3 py-2 rounded text-gray-300 hover:text-amber-400 hover:bg-gray-800 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-folder text-amber-400"></i> Fiscal & IR 
+                        <span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 py-0.2 rounded font-mono font-bold">PRO</span>
+                        <i class="fa-solid fa-chevron-down text-[9px] text-gray-400 ml-0.5"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <div class="w-60 bg-gray-900 border border-gray-800 rounded-lg shadow-xl py-1.5">
+                            <a href="#" onclick="carregarModulo('apuracao-ir')" class="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-amber-400 transition flex items-center gap-2">
+                                <i class="fa-solid fa-calculator text-amber-400"></i> Apuração Mensal & DARF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </nav>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <span class="text-xs bg-gray-800 text-gray-300 px-3 py-1 rounded-md border border-gray-700 font-mono">
+                <i class="fa-solid fa-circle text-emerald-500 text-[10px] mr-1.5"></i> Sincronizado
+            </span>
+        </div>
+    </header>
+
+    <!-- Área de Conteúdo Dinâmico -->
+    <main class="flex-1 p-6 max-w-[1600px] w-full mx-auto" id="conteudoModulo">
+        <div class="flex flex-col items-center justify-center h-[70vh] text-center">
+            <div class="bg-gray-900 border border-gray-800 p-8 rounded-xl shadow-2xl max-w-lg">
+                <div class="text-blue-500 text-3xl mb-3"><i class="fa-solid fa-chart-pie"></i></div>
+                <h2 class="text-lg font-bold text-white mb-2">Bem-vindo ao Cockpit Operacional</h2>
+                <p class="text-xs text-gray-400">Acesse a pasta <strong class="text-amber-400">Trade</strong>, <strong class="text-emerald-400">Configurações</strong> ou <strong class="text-amber-400">Fiscal & IR</strong> no menu superior.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Script de Carregamento SPA Blindado -->
+    <script>
+        async function carregarModulo(nomeModulo) {
+            const container = document.getElementById('conteudoModulo');
+            container.innerHTML = `<div class="text-center py-20 text-gray-500 text-xs"><i class="fa-solid fa-spinner fa-spin mr-2"></i> A carregar módulo...</div>`;
+
+            const rotasModulos = {
+                'operacoes': 'frontend/views/Trade/operacoes.html?v=100',
+                'analise-trade': 'frontend/views/Trade/analise.html?v=1',
+                'metas-trade': 'frontend/views/Trade/metas.html?v=1',
+                'carga_inicial': 'frontend/views/Configuracoes/carga_inicial.html',
+                'contas': 'frontend/views/Configuracoes/contas.html',
+                'setup': 'frontend/views/Configuracoes/setups.html',
+                'calendario': 'frontend/views/Configuracoes/calendario.html',
+                'central_cargas': 'frontend/views/Configuracoes/central_cargas.html',
+                'analise-pre': 'frontend/views/analise-pre.html',
+                'insights-ia': 'frontend/views/insights-ia.html',
+                'relatorio-operacional': 'frontend/views/relatorio-operacional.html',
+                'configurar-indicadores': 'frontend/views/configurar-indicadores.html',
+                'backup-restauracao': 'frontend/views/Configuracoes/backup-restauracao.html',
+                'apuracao-ir': 'frontend/views/Fiscal/ir.html?v=1'
+            };
+
+            const arquivoHTML = rotasModulos[nomeModulo];
+
+            try {
+                const response = await fetch(`${arquivoHTML}?_t=${Date.now()}`);
+                if (!response.ok) throw new Error(`Erro HTTP: ${response.status} ao carregar ${arquivoHTML}`);
+                const html = await response.text();
+                
+                container.innerHTML = html;
+
+                const scripts = container.querySelectorAll('script');
+                for (let i = 0; i < scripts.length; i++) {
+                    const oldScript = scripts[i];
+                    const newScript = document.createElement('script');
+                    
+                    Array.from(oldScript.attributes).forEach(attr => {
+                        newScript.setAttribute(attr.name, attr.value);
+                    });
+
+                    if (oldScript.src) {
+                        newScript.src = `${oldScript.src}?_t=${Date.now()}`;
+                    } else {
+                        newScript.textContent = oldScript.innerHTML;
+                    }
+
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                }
+
+            } catch (error) {
+                console.error("Erro no carregamento:", error);
+                container.innerHTML = `
+                    <div class="p-4 bg-red-950/50 border border-red-900 rounded text-red-300 text-xs max-w-3xl mx-auto mt-6">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> Erro ao carregar o módulo <strong>${nomeModulo}</strong>.<br>
+                        Detalhe técnico: <code>${error.message}</code>
+                    </div>`;
+            }
+        }
+    </script>
+</body>
+</html>

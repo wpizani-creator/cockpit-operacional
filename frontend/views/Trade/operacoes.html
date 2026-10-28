@@ -1,0 +1,1438 @@
+<!-- ========================================================================================= -->
+<!-- ARQUIVO: frontend/views/Trade/operacoes.html                                              -->
+<!-- CONTEXTO: Seletor Estilo Profit + Modais + Persistência Garantida de Notas e Opções       -->
+<!-- ========================================================================================= -->
+<div class="space-y-5">
+    <!-- Cabeçalho do Módulo -->
+    <div class="bg-gray-900 border border-gray-800 p-5 rounded-xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <div class="flex items-center gap-2.5">
+                <span class="bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 p-2 rounded-lg text-sm">
+                    <i class="fa-solid fa-table-list"></i>
+                </span>
+                <h1 class="text-base font-bold text-white tracking-wide">Módulo: Operações (Persistência em Disco & Nuvem)</h1>
+                <span class="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded font-mono">operacoes.html</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Base unificada conectada ao FastAPI via SQLite com suporte a filtros dinâmicos de período e opções customizadas.</p>
+        </div>
+
+        <!-- Botões de Ação Superiores -->
+        <div class="flex flex-wrap items-center gap-2.5">
+            <div class="relative" id="dropdownColunasContainer">
+                <button onclick="toggleMenuColunas()" id="btnSelecionarColunas" class="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition shadow">
+                    <i class="fa-solid fa-columns text-blue-400"></i> Selecionar Colunas <i class="fa-solid fa-chevron-down text-[10px] text-gray-400"></i>
+                </button>
+                
+                <div id="menuColunas" class="hidden absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-3 z-50 text-xs">
+                    <div class="font-bold text-gray-200 mb-2 pb-1 border-b border-gray-800 flex justify-between items-center">
+                        <span>Exibir Colunas</span>
+                        <span class="text-[10px] text-blue-400 cursor-pointer hover:underline" onclick="marcarTodasColunas(true)">Todas</span>
+                    </div>
+                    <div id="listaCheckboxesColunas" class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+                        <!-- Gerado via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="acionarImportacaoCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition shadow">
+                <i class="fa-solid fa-file-excel"></i> Importar CSV do Profit
+            </button>
+            <button onclick="limparBase()" class="bg-red-950/60 hover:bg-red-900 text-red-300 border border-red-900 px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition shadow">
+                <i class="fa-solid fa-trash-can"></i> Limpar Base
+            </button>
+        </div>
+    </div>
+
+    <!-- Painel de Métricas -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+        <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono">Res. Líq. Tot.</div>
+            <div id="metricResLiq" class="text-sm font-bold font-mono mt-1 text-gray-200">R$ 0,00</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono">Res. Total</div>
+            <div id="metricResTotal" class="text-sm font-bold font-mono mt-1 text-gray-200">R$ 0,00</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono">Lucro Bruto</div>
+            <div id="metricLucroBruto" class="text-sm font-bold font-mono mt-1 text-emerald-400">R$ 0,00</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono">Prejuízo Bruto</div>
+            <div id="metricPrejuizoBruto" class="text-sm font-bold font-mono mt-1 text-red-400">R$ 0,00</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono">Operações</div>
+            <div id="metricQtdOp" class="text-sm font-bold font-mono mt-1 text-white">0</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono">Vencedoras</div>
+            <div id="metricVencedoras" class="text-sm font-bold font-mono mt-1 text-emerald-400">0,0%</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono">Custos</div>
+            <div id="metricCustos" class="text-sm font-bold font-mono mt-1 text-red-400">R$ 0,00</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
+            <div class="text-[10px] text-gray-400 uppercase font-mono">Comissões</div>
+            <div id="metricComissoes" class="text-sm font-bold font-mono mt-1 text-gray-300">R$ 0,00</div>
+        </div>
+    </div>
+
+    <!-- Barra de Filtros -->
+    <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow flex flex-col sm:flex-row items-center gap-3">
+        <div class="relative flex-shrink-0" id="dropdownPeriodoProfitContainer">
+            <button onclick="toggleMenuPeriodoProfit()" id="btnPeriodoProfit" class="bg-gray-950 hover:bg-gray-800 text-amber-400 border border-gray-800 hover:border-amber-500/50 px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition shadow font-mono">
+                <i class="fa-solid fa-calendar-days text-amber-400 text-sm"></i> 
+                <span id="labelPeriodoProfitSelecionado">Últimos 100 Trades</span> 
+                <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 ml-1"></i>
+            </button>
+
+            <div id="menuPeriodoProfit" class="hidden absolute left-0 mt-2 w-56 bg-gray-950 border border-gray-800 rounded-xl shadow-2xl p-1.5 z-50 text-xs font-mono space-y-0.5">
+                <button onclick="selecionarFiltroPeriodoProfit('100', 'Últimos 100 Trades')" class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 hover:text-amber-400 rounded transition flex items-center justify-between">
+                    <span>Últimos 100 Trades</span> <i class="fa-solid fa-bolt text-[10px] text-amber-400"></i>
+                </button>
+                <button onclick="selecionarFiltroPeriodoProfit('hoje', 'Hoje')" class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 hover:text-amber-400 rounded transition">Hoje</button>
+                <button onclick="selecionarFiltroPeriodoProfit('ontem', 'Ontem')" class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 hover:text-amber-400 rounded transition">Ontem</button>
+                <button onclick="selecionarFiltroPeriodoProfit('semanal', 'Semanal (7 Dias)')" class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 hover:text-amber-400 rounded transition">Semanal</button>
+                <button onclick="selecionarFiltroPeriodoProfit('mes_atual', 'Mês Atual')" class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 hover:text-amber-400 rounded transition">Mês Atual</button>
+                <button onclick="selecionarFiltroPeriodoProfit('3_meses', '3 Meses / Trimestral')" class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 hover:text-amber-400 rounded transition">3 Meses</button>
+                <button onclick="selecionarFiltroPeriodoProfit('6_meses', '6 Meses / Semestre')" class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 hover:text-amber-400 rounded transition">6 Meses</button>
+                <button onclick="selecionarFiltroPeriodoProfit('ano_corrente', 'Ano 2026')" class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 hover:text-amber-400 rounded transition">Ano 2026</button>
+                <button onclick="selecionarFiltroPeriodoProfit('todos', 'Todas as Operações')" class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 hover:text-amber-400 rounded transition">Todas as Operações</button>
+                
+                <div class="border-t border-gray-800 my-1"></div>
+                <button onclick="abrirModalPeriodoPersonalizado()" class="w-full text-left px-3 py-2 text-amber-400 font-bold hover:bg-gray-800 rounded transition flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-xs"></i> <span>Personalizado...</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 w-full">
+            <div class="text-blue-400 pl-2"><i class="fa-solid fa-filter"></i></div>
+            <input type="text" id="inputFiltroTabela" onkeyup="filtrarTabelaExcel()" placeholder="Digite para buscar (ex: VWAP, WINZ26, ou digite 'vazio' para sem informação)..." class="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500 font-mono">
+        </div>
+
+        <div class="relative w-full sm:w-80 flex-shrink-0" id="dropdownFiltroColunasContainer">
+            <button onclick="toggleMenuFiltroColunas()" id="btnFiltroColunas" class="w-full bg-gray-950 hover:bg-gray-800 text-gray-200 border border-gray-800 px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition shadow">
+                <span id="labelFiltroColunasSelecionadas" class="truncate">Filtrar em: Todas as Colunas</span>
+                <i class="fa-solid fa-chevron-down text-[10px] text-gray-400"></i>
+            </button>
+            
+            <div id="menuFiltroColunas" class="hidden absolute right-0 mt-2 w-full bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-3 z-50 text-xs">
+                <div class="font-bold text-gray-200 mb-2 pb-1 border-b border-gray-800 flex justify-between items-center">
+                    <span>Colunas de Pesquisa</span>
+                    <div class="space-x-2">
+                        <span class="text-[10px] text-blue-400 cursor-pointer hover:underline" onclick="marcarTodasFiltro(true)">Todas</span>
+                        <span class="text-[10px] text-gray-400 cursor-pointer hover:underline" onclick="marcarTodasFiltro(false)">Nenhuma</span>
+                    </div>
+                </div>
+                <div id="listaCheckboxesFiltroColunas" class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+                    <!-- Gerado via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela Principal -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl shadow-xl overflow-hidden w-full mx-auto">
+        <div id="scrollTopoContainer" class="sticky top-0 z-30 overflow-x-auto custom-scroll bg-gray-950 border-b border-gray-800 py-1.5 shadow-md">
+            <div id="scrollTopoFake" style="height: 1px;"></div>
+        </div>
+
+        <div id="scrollTabelaContainer" class="overflow-x-hidden overflow-y-auto custom-scroll pb-2 max-h-[680px]">
+            <table class="w-full text-left border-collapse text-xs relative" id="tabelaOperacoes">
+                <thead class="sticky top-0 z-20 bg-gray-950">
+                    <tr class="bg-gray-950 text-gray-400 border-b border-gray-800 uppercase font-mono text-[10px] tracking-wider shadow-sm">
+                        <th data-col-index="0" class="py-3 px-3 font-semibold relative sticky-col sticky-col-0 text-center" style="width: 50px; min-width: 50px; left: 0px; z-index: 25;"><i class="fa-solid fa-trash-can text-gray-500"></i><div class="resizer"></div></th>
+                        <th data-col-index="1" class="py-3 px-3 font-semibold relative sticky-col sticky-col-1" style="width: 45px; min-width: 45px; left: 50px; z-index: 25;">#<div class="resizer"></div></th>
+                        <th data-col-index="2" class="py-3 px-3 font-semibold relative sticky-col sticky-col-2" style="width: 95px; min-width: 95px; left: 95px; z-index: 25;">CONTA<div class="resizer"></div></th>
+                        <th data-col-index="3" class="py-3 px-3 font-semibold relative sticky-col sticky-col-3" style="width: 85px; min-width: 85px; left: 190px; z-index: 25;">ATIVO<div class="resizer"></div></th>
+                        <th data-col-index="4" class="py-3 px-3 font-semibold relative sticky-col sticky-col-4" style="width: 145px; min-width: 145px; left: 275px; z-index: 25; border-right: 2px solid #374151;">ABERTURA<div class="resizer"></div></th>
+                        
+                        <th data-col-index="5" class="py-3 px-3 font-semibold relative" style="width: 145px; min-width: 145px;">FECHAMENTO<div class="resizer"></div></th>
+                        <th data-col-index="6" class="py-3 px-3 font-semibold relative" style="width: 110px; min-width: 110px;">TEMPO<div class="resizer"></div></th>
+                        <th data-col-index="7" class="py-3 px-3 font-semibold relative text-center" style="width: 90px; min-width: 90px;">QTD/LADO<div class="resizer"></div></th>
+                        <th data-col-index="8" class="py-3 px-3 font-semibold relative" style="width: 100px; min-width: 100px;">COMPRA<div class="resizer"></div></th>
+                        <th data-col-index="9" class="py-3 px-3 font-semibold relative" style="width: 100px; min-width: 100px;">VENDA<div class="resizer"></div></th>
+                        <th data-col-index="10" class="py-3 px-3 font-semibold relative" style="width: 115px; min-width: 115px;">RES. BRUTO<div class="resizer"></div></th>
+                        <th data-col-index="11" class="py-3 px-3 font-semibold relative" style="width: 95px; min-width: 95px;">RES. (%)<div class="resizer"></div></th>
+                        <th data-col-index="12" class="py-3 px-3 font-semibold relative" style="width: 90px; min-width: 90px;">CUSTO<div class="resizer"></div></th>
+                        <th data-col-index="13" class="py-3 px-3 font-semibold relative" style="width: 110px; min-width: 110px;">RES. LÍQ.<div class="resizer"></div></th>
+                        <th data-col-index="14" class="py-3 px-3 font-semibold relative" style="width: 75px; min-width: 75px;">TET<div class="resizer"></div></th>
+                        <th data-col-index="15" class="py-2 px-2 font-semibold relative text-center" style="width: 130px; min-width: 130px;">SETUP<div class="resizer"></div></th>
+                        <th data-col-index="16" class="py-2 px-2 font-semibold relative text-center" style="width: 140px; min-width: 140px;">COMPL. SETUP<div class="resizer"></div></th>
+                        <th data-col-index="17" class="py-2 px-2 font-semibold relative text-center" style="width: 120px; min-width: 120px;">TIMEFRAME<div class="resizer"></div></th>
+                        <th data-col-index="18" class="py-2 px-2 font-semibold relative text-center" style="width: 130px; min-width: 130px;">TIPO ENTRADA<div class="resizer"></div></th>
+                        <th data-col-index="19" class="py-2 px-2 font-semibold relative text-center" style="width: 120px; min-width: 120px;">TIPO SAÍDA<div class="resizer"></div></th>
+                        <th data-col-index="20" class="py-2 px-2 font-semibold relative text-center" style="width: 120px; min-width: 120px;">CHECKLIST<div class="resizer"></div></th>
+                        <th data-col-index="21" class="py-2 px-2 font-semibold relative text-center" style="width: 130px; min-width: 130px;">FALHAS<div class="resizer"></div></th>
+                        <th data-col-index="22" class="py-2 px-2 font-semibold relative text-center" style="width: 110px; min-width: 110px;">MM TEND.<div class="resizer"></div></th>
+                        <th data-col-index="23" class="py-2 px-2 font-semibold relative text-center" style="width: 110px; min-width: 110px;">VWAP TEND.<div class="resizer"></div></th>
+                        <th data-col-index="24" class="py-2 px-2 font-semibold relative text-center" style="width: 120px; min-width: 120px;">RES/SUP PRÓX.<div class="resizer"></div></th>
+                        <th data-col-index="25" class="py-2 px-2 font-semibold relative text-center" style="width: 120px; min-width: 120px;">MOMENTO<div class="resizer"></div></th>
+                        <th data-col-index="26" class="py-2 px-2 font-semibold relative text-center" style="width: 130px; min-width: 130px;">PREÇO LIMITE<div class="resizer"></div></th>
+                        <th data-col-index="27" class="py-2 px-2 font-semibold relative text-center" style="width: 130px; min-width: 130px;">EMOCIONAL<div class="resizer"></div></th>
+                        <th data-col-index="28" class="py-2 px-2 font-semibold relative text-center" style="width: 150px; min-width: 150px;">C. ATIVOS<div class="resizer"></div></th>
+                        <th data-col-index="29" class="py-2 px-2 font-semibold relative text-center" style="width: 150px; min-width: 150px;">NOTA<div class="resizer"></div></th>
+                        <th data-col-index="30" class="py-2 px-2 font-semibold relative text-center" style="width: 130px; min-width: 130px;">PRINT<div class="resizer"></div></th>
+                        
+                        <!-- NOVAS COLUNAS FLEXÍVEIS -->
+                        <th data-col-index="31" class="py-2 px-2 font-semibold relative text-center" style="width: 140px; min-width: 140px;">OPÇÃO 1<div class="resizer"></div></th>
+                        <th data-col-index="32" class="py-2 px-2 font-semibold relative text-center" style="width: 140px; min-width: 140px;">OPÇÃO 2<div class="resizer"></div></th>
+                        <th data-col-index="33" class="py-2 px-2 font-semibold relative text-center" style="width: 140px; min-width: 140px;">OPÇÃO 3<div class="resizer"></div></th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaOperacoesCorpo" class="divide-y divide-gray-800/60 text-gray-300">
+                    <!-- Preenchido dinamicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modais de Suporte -->
+<div id="modalPeriodoPersonalizado" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-gray-900 border border-gray-700 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden flex flex-col font-mono">
+        <div class="bg-gray-950 px-4 py-3 border-b border-gray-800 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-calendar-days text-amber-400"></i>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Seleção de Data</h3>
+            </div>
+            <button onclick="fecharModalPeriodoPersonalizado()" class="text-gray-400 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <div class="p-5 space-y-4">
+            <div class="space-y-1.5">
+                <label class="text-[11px] text-gray-400 block font-sans">Data Inicial:</label>
+                <input type="date" id="inputDataInicialCustom" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-xs text-amber-400 font-bold focus:outline-none focus:border-amber-500">
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[11px] text-gray-400 block font-sans">Data Final:</label>
+                <input type="date" id="inputDataFinalCustom" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-xs text-amber-400 font-bold focus:outline-none focus:border-amber-500">
+            </div>
+
+            <div class="pt-1">
+                <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-gray-300">
+                    <input type="checkbox" id="chkSemDataFinal" onchange="toggleSemDataFinal(this.checked)" class="rounded bg-gray-950 border-gray-700 text-amber-500 focus:ring-0">
+                    <span>Sem data final</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="bg-gray-950 px-4 py-3 border-t border-gray-800 flex justify-end gap-2">
+            <button onclick="fecharModalPeriodoPersonalizado()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-1.5 rounded-lg text-xs font-semibold transition">
+                Cancelar
+            </button>
+            <button onclick="aplicarPeriodoPersonalizado()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-1.5 rounded-lg text-xs font-semibold transition shadow">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="modalNotaCustom" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-gray-900 border border-gray-700 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="bg-gray-950 px-5 py-4 border-b border-gray-800 flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+                <span class="text-blue-400 bg-blue-500/10 p-2 rounded-lg border border-blue-500/20">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </span>
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Anotações da Operação</h3>
+            </div>
+            <button onclick="fecharModalNota()" class="text-gray-400 hover:text-white transition p-1">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+        </div>
+
+        <div class="p-5 space-y-3">
+            <p class="text-xs text-gray-400">Escreva detalhes sobre o contexto, gatilho, gatilho emocional ou aprendizados desta operação:</p>
+            <textarea id="textareaNotaModal" rows="6" placeholder="Ex: Entrada perfeita na VWAP, porém saída antecipada por ansiedade..." class="w-full bg-gray-950 border border-gray-700 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-blue-500 font-sans resize-none custom-scroll"></textarea>
+        </div>
+
+        <div class="bg-gray-950 px-5 py-3 border-t border-gray-800 flex justify-end gap-2.5">
+            <button onclick="fecharModalNota()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-xs font-semibold transition">
+                Cancelar
+            </button>
+            <button id="btnSalvarNotaModal" onclick="salvarNotaModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow">
+                Salvar Nota
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="modalPrintCustom" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-gray-900 border border-gray-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="bg-gray-950 px-5 py-4 border-b border-gray-800 flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+                <span class="text-emerald-400 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
+                    <i class="fa-solid fa-camera"></i>
+                </span>
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Adicionar Print (Recorte)</h3>
+            </div>
+            <button onclick="fecharModalPrint()" class="text-gray-400 hover:text-white transition p-1">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+        </div>
+
+        <div class="p-5 space-y-4 text-center">
+            <p class="text-xs text-gray-400 text-left">
+                Tire o print com <code class="bg-gray-800 text-blue-300 px-1.5 py-0.5 rounded font-mono">Win + Shift + S</code>, clique na área abaixo e aperte <code class="bg-gray-800 text-emerald-300 px-1.5 py-0.5 rounded font-mono">Ctrl + V</code>:
+            </p>
+
+            <div id="dropAreaPrint" tabindex="0" class="border-2 border-dashed border-gray-700 hover:border-blue-500 focus:border-blue-500 bg-gray-950 rounded-xl p-6 flex flex-col items-center justify-center gap-3 transition cursor-pointer outline-none min-h-[160px]">
+                <div id="placeholderPrintInfo" class="space-y-2">
+                    <i class="fa-solid fa-clipboard text-2xl text-blue-400"></i>
+                    <p class="text-xs text-gray-300 font-medium">Clique aqui e aperte <span class="text-blue-400 font-bold">Ctrl + V</span></p>
+                    <p class="text-[10px] text-gray-500">O print será enviado para o servidor</p>
+                </div>
+                <div id="previewContainerPrint" class="hidden flex flex-col items-center gap-2 w-full">
+                    <img id="imgPreviewPrint" src="" alt="Preview do Print" class="max-h-40 rounded-lg border border-gray-700 shadow-md object-contain">
+                    <span class="text-[10px] text-emerald-400 font-mono"><i class="fa-solid fa-check-circle"></i> Print pronto para salvar!</span>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+                <span class="text-[11px] text-gray-500">Ou se preferir:</span>
+                <button onclick="document.getElementById('inputPrintOculto').click()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+                    <i class="fa-solid fa-folder-open text-blue-400 mr-1.5"></i> Selecionar Arquivo
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-gray-950 px-5 py-3 border-t border-gray-800 flex justify-end gap-2.5">
+            <button onclick="fecharModalPrint()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-xs font-semibold transition">
+                Cancelar
+            </button>
+            <button id="btnSalvarPrintModal" onclick="salvarPrintModal()" disabled class="bg-blue-600/50 cursor-not-allowed text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow">
+                Salvar Print
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Inputs Ocultos -->
+<input type="file" id="inputCsvOculto" accept=".csv" class="hidden" onchange="processarArquivoCsv(event)">
+<input type="file" id="inputPrintOculto" accept="image/*" class="hidden" onchange="processarUploadPrintDireto(event)">
+
+<style>
+    .sticky-col-0 { position: sticky; left: 0px; background-color: #111827; }
+    .sticky-col-1 { position: sticky; left: 50px; background-color: #111827; }
+    .sticky-col-2 { position: sticky; left: 95px; background-color: #111827; }
+    .sticky-col-3 { position: sticky; left: 190px; background-color: #111827; }
+    .sticky-col-4 { position: sticky; left: 275px; background-color: #111827; border-right: 2px solid #374151; }
+
+    tr:hover .sticky-col { background-color: #1f2937 !important; }
+
+    .resizer { position: absolute; top: 0; right: 0; width: 5px; cursor: col-resize; user-select: none; height: 100%; }
+    .resizer:hover, .resizing { background-color: #3b82f6; }
+    
+    .custom-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #030712; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
+</style>
+
+<script>
+    (function() {
+        const STORAGE_KEY_COLUNAS = 'operacoes_colunas_visiveis_v13';
+        const STORAGE_KEY_FILTRO_COLUNAS = 'operacoes_filtro_colunas_v5';
+        const STORAGE_KEY_CONTAS = 'cockpit_contas_completo';
+        
+        let cacheTradesMemoriaBrutos = [];
+        let cacheTradesMemoriaFiltradosPeriodo = [];
+        let filtroPeriodoAtual = '100';
+        let dataInicioPersonalizada = null;
+        let dataFimPersonalizada = null;
+
+        let tradeAtualParaNota = null;
+        let tradeAtualParaPrint = null;
+        let arquivoPrintPendenteBlob = null;
+
+        function converterParaNumero(valorStr) {
+            if (!valorStr || typeof valorStr !== 'string') return 0;
+            let limpo = valorStr.trim().replace(/[R$\s]/g, '');
+            if (limpo.includes(',') && limpo.includes('.')) {
+                limpo = limpo.replace(/\./g, '').replace(',', '.');
+            } else if (limpo.includes(',')) {
+                limpo = limpo.replace(',', '.');
+            }
+            const num = parseFloat(limpo);
+            return isNaN(num) ? 0 : num;
+        }
+
+        function converterDataParaTimestamp(dataStr) {
+            if (!dataStr || typeof dataStr !== 'string') return 0;
+            const limpo = dataStr.trim();
+            const partes = limpo.split(' ');
+            const dataPartes = partes[0].split('/');
+            if (dataPartes.length < 3) return 0;
+            const isoStr = `${dataPartes[2]}-${dataPartes[1]}-${dataPartes[0]}T${partes[1] || '00:00:00'}`;
+            const timestamp = new Date(isoStr).getTime();
+            return isNaN(timestamp) ? 0 : timestamp;
+        }
+
+        function ordenarTradesDecrescente(trades) {
+            return trades.sort((a, b) => converterDataParaTimestamp(b.abertura) - converterDataParaTimestamp(a.abertura));
+        }
+
+        function obterTaxasConta(numConta, ativo) {
+            try {
+                const contas = JSON.parse(localStorage.getItem(STORAGE_KEY_CONTAS) || '[]');
+                const contaEncontrada = contas.find(c => c.id.toString().trim() === numConta.toString().trim());
+                if (!contaEncontrada) return 0;
+                const ativoUpper = (ativo || '').toUpperCase();
+                if (ativoUpper.includes('WIN')) return converterParaNumero(contaEncontrada.taxaWin);
+                if (ativoUpper.includes('WDO')) return converterParaNumero(contaEncontrada.taxaDol);
+            } catch (e) {}
+            return 0;
+        }
+
+        function calcularCustoTrade(t) {
+            const qtdStr = t.qtdCompra && t.qtdCompra !== '-' ? t.qtdCompra : (t.qtdVenda && t.qtdVenda !== '-' ? t.qtdVenda : '1');
+            return (parseInt(qtdStr) || 1) * obterTaxasConta(t.conta, t.ativo);
+        }
+
+        function higienizarTradeObjeto(trade) {
+            return {
+                id: String(trade.id || ''),
+                conta: String(trade.conta || ''),
+                ativo: String(trade.ativo || ''),
+                abertura: String(trade.abertura || ''),
+                fechamento: String(trade.fechamento || ''),
+                tempoOperacao: String(trade.tempoOperacao || ''),
+                lado: String(trade.lado || ''),
+                qtdCompra: String(trade.qtdCompra || ''),
+                qtdVenda: String(trade.qtdVenda || ''),
+                precoCompra: String(trade.precoCompra || ''),
+                precoVenda: String(trade.precoVenda || ''),
+                resIntervaloBruto: String(trade.resIntervaloBruto || ''),
+                resIntervaloPercentual: String(trade.resIntervaloPercentual || ''),
+                custo: String(trade.custo || ''),
+                resOperacao: String(trade.resOperacao || ''),
+                tet: String(trade.tet || ''),
+                setup: String(trade.setup || ''),
+                complementoSetup: String(trade.complementoSetup || ''),
+                timeframe: String(trade.timeframe || ''),
+                tipoEntrada: String(trade.tipoEntrada || ''),
+                tipoSaida: String(trade.tipoSaida || ''),
+                checklist: String(trade.checklist || ''),
+                falhas: String(trade.falhas || ''),
+                mmTend: String(trade.mmTend || ''),
+                vwapTend: String(trade.vwapTend || ''),
+                resSupProx: String(trade.resSupProx || ''),
+                momento: String(trade.momento || ''),
+                precoLimite: String(trade.precoLimite || ''),
+                nota: String(trade.nota || ''),
+                printUrl: String(trade.printUrl || ''),
+                emocional: String(trade.emocional || ''),
+                usaCesta: String(trade.usaCesta || 'false'),
+                ativo1: String(trade.ativo1 || ''),
+                estado1: String(trade.estado1 || ''),
+                ativo2: String(trade.ativo2 || ''),
+                estado2: String(trade.estado2 || ''),
+                ativo3: String(trade.ativo3 || ''),
+                estado3: String(trade.estado3 || ''),
+                ativo4: String(trade.ativo4 || ''),
+                estado4: String(trade.estado4 || ''),
+                opcao1: String(trade.opcao1 || ''),
+                opcao2: String(trade.opcao2 || ''),
+                opcao3: String(trade.opcao3 || '')
+            };
+        }
+
+        // DROPDOWN E MODAL DE PERÍODO ESTILO PROFIT
+        window.toggleMenuPeriodoProfit = function() {
+            const menu = document.getElementById('menuPeriodoProfit');
+            if (menu) menu.classList.toggle('hidden');
+        };
+
+        window.selecionarFiltroPeriodoProfit = function(chave, textoExibicao) {
+            filtroPeriodoAtual = chave;
+            const label = document.getElementById('labelPeriodoProfitSelecionado');
+            if (label) label.textContent = textoExibicao;
+            
+            const menu = document.getElementById('menuPeriodoProfit');
+            if (menu) menu.classList.add('hidden');
+
+            aplicarFiltroPeriodoMemoria();
+        };
+
+        window.abrirModalPeriodoPersonalizado = function() {
+            const menu = document.getElementById('menuPeriodoProfit');
+            if (menu) menu.classList.add('hidden');
+
+            const modal = document.getElementById('modalPeriodoPersonalizado');
+            if (modal) {
+                const hojeIso = new Date().toISOString().split('T')[0];
+                document.getElementById('inputDataInicialCustom').value = dataInicioPersonalizada || hojeIso;
+                document.getElementById('inputDataFinalCustom').value = dataFimPersonalizada || hojeIso;
+                modal.classList.remove('hidden');
+            }
+        };
+
+        window.fecharModalPeriodoPersonalizado = function() {
+            const modal = document.getElementById('modalPeriodoPersonalizado');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.toggleSemDataFinal = function(marcado) {
+            const inputFinal = document.getElementById('inputDataFinalCustom');
+            if (inputFinal) {
+                inputFinal.disabled = marcado;
+                if (marcado) inputFinal.classList.add('opacity-40', 'cursor-not-allowed');
+                else inputFinal.classList.remove('opacity-40', 'cursor-not-allowed');
+            }
+        };
+
+        window.aplicarPeriodoPersonalizado = function() {
+            const dtIniVal = document.getElementById('inputDataInicialCustom').value;
+            const dtFimVal = document.getElementById('inputDataFinalCustom').value;
+            const semDataFinal = document.getElementById('chkSemDataFinal').checked;
+
+            if (!dtIniVal) {
+                alert("Por favor, selecione ao menos a Data Inicial.");
+                return;
+            }
+
+            dataInicioPersonalizada = dtIniVal;
+            dataFimPersonalizada = semDataFinal ? null : dtFimVal;
+
+            filtroPeriodoAtual = 'personalizado';
+
+            const pIni = dtIniVal.split('-');
+            const strIni = `${pIni[2]}/${pIni[1]}/${pIni[0]}`;
+            
+            let strRotulo = strIni;
+            if (semDataFinal) {
+                strRotulo += ' em diante';
+            } else if (dtFimVal) {
+                const pFim = dtFimVal.split('-');
+                strRotulo += ` à ${pFim[2]}/${pFim[1]}/${pFim[0]}`;
+            }
+
+            document.getElementById('labelPeriodoProfitSelecionado').textContent = strRotulo;
+            fecharModalPeriodoPersonalizado();
+            aplicarFiltroPeriodoMemoria();
+        };
+
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('dropdownPeriodoProfitContainer');
+            const menu = document.getElementById('menuPeriodoProfit');
+            if (container && menu && !container.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        function aplicarFiltroPeriodoMemoria() {
+            if (!cacheTradesMemoriaBrutos || cacheTradesMemoriaBrutos.length === 0) {
+                cacheTradesMemoriaFiltradosPeriodo = [];
+                renderizarTabelaTrades([]);
+                atualizarPainelMetricas([]);
+                return;
+            }
+
+            const agora = new Date();
+            const anoAtual = 2026;
+            let resultado = [...cacheTradesMemoriaBrutos];
+
+            if (filtroPeriodoAtual === '100') {
+                resultado = resultado.slice(0, 100);
+            } else if (filtroPeriodoAtual === 'hoje') {
+                const hojeStr = `${String(agora.getDate()).padStart(2,'0')}/${String(agora.getMonth()+1).padStart(2,'0')}/${anoAtual}`;
+                resultado = resultado.filter(t => (t.abertura || '').startsWith(hojeStr));
+            } else if (filtroPeriodoAtual === 'ontem') {
+                const ontem = new Date(agora);
+                ontem.setDate(ontem.getDate() - 1);
+                const ontemStr = `${String(ontem.getDate()).padStart(2,'0')}/${String(ontem.getMonth()+1).padStart(2,'0')}/${anoAtual}`;
+                resultado = resultado.filter(t => (t.abertura || '').startsWith(ontemStr));
+            } else if (filtroPeriodoAtual === 'semanal') {
+                const limiteSeteDias = new Date(agora.getTime() - (7 * 24 * 60 * 60 * 1000)).getTime();
+                resultado = resultado.filter(t => converterDataParaTimestamp(t.abertura) >= limiteSeteDias);
+            } else if (filtroPeriodoAtual === 'mes_atual') {
+                const mesStr = `/${String(agora.getMonth() + 1).padStart(2, '0')}/${anoAtual}`;
+                resultado = resultado.filter(t => (t.abertura || '').includes(mesStr));
+            } else if (filtroPeriodoAtual === '3_meses') {
+                const limite90Dias = new Date(agora.getTime() - (90 * 24 * 60 * 60 * 1000)).getTime();
+                resultado = resultado.filter(t => converterDataParaTimestamp(t.abertura) >= limite90Dias);
+            } else if (filtroPeriodoAtual === '6_meses') {
+                const limite180Dias = new Date(agora.getTime() - (180 * 24 * 60 * 60 * 1000)).getTime();
+                resultado = resultado.filter(t => converterDataParaTimestamp(t.abertura) >= limite180Dias);
+            } else if (filtroPeriodoAtual === 'ano_corrente') {
+                resultado = resultado.filter(t => (t.abertura || '').includes(`/${anoAtual}`));
+            } else if (filtroPeriodoAtual === 'personalizado') {
+                if (dataInicioPersonalizada) {
+                    const tsIni = new Date(`${dataInicioPersonalizada}T00:00:00`).getTime();
+                    resultado = resultado.filter(t => converterDataParaTimestamp(t.abertura) >= tsIni);
+                }
+                if (dataFimPersonalizada) {
+                    const tsFim = new Date(`${dataFimPersonalizada}T23:59:59`).getTime();
+                    resultado = resultado.filter(t => converterDataParaTimestamp(t.abertura) <= tsFim);
+                }
+            }
+
+            cacheTradesMemoriaFiltradosPeriodo = resultado;
+            renderizarTabelaTrades(cacheTradesMemoriaFiltradosPeriodo);
+            atualizarPainelMetricas(cacheTradesMemoriaFiltradosPeriodo);
+            filtrarTabelaExcel();
+        }
+
+        function obterOpcoesParametro(categoria) {
+            try { return JSON.parse(localStorage.getItem(`cockpit_cat_${categoria}`) || '[]'); } catch (e) { return []; }
+        }
+
+        function gerarSelectParametro(categoria, valorAtual, idTrade, campoTrade) {
+            const itens = obterOpcoesParametro(categoria);
+            itens.sort((a, b) => {
+                const nomeA = (a.nome || a).toString().toLowerCase();
+                const nomeB = (b.nome || b).toString().toLowerCase();
+                return nomeA.localeCompare(nomeB, 'pt-BR');
+            });
+
+            let options = `<option value="">Selecione...</option>`;
+            itens.forEach(item => {
+                const nomeBruto = item.nome || item;
+                const nome = (categoria === 'momento') ? nomeBruto.toString().toUpperCase() : nomeBruto;
+                const valorComparacao = (categoria === 'momento' && valorAtual) ? valorAtual.toString().toUpperCase() : valorAtual;
+                const nomeEscapado = String(nome).replace(/"/g, '&quot;');
+                const selecionado = (nome === valorComparacao) ? 'selected' : '';
+                options += `<option value="${nomeEscapado}" ${selecionado}>${nomeEscapado}</option>`;
+            });
+            return `<select onchange="atualizarParametroTrade('${idTrade}', '${campoTrade}', this.value)" class="bg-[#0d1117] border border-gray-700 text-[11px] text-gray-200 rounded px-2 py-1 outline-none focus:border-blue-500 w-full min-w-[110px]">${options}</select>`;
+        }
+
+        function gerarInputTexto(valorAtual, idTrade, campoTrade, placeholder = 'Preencher...') {
+            const valorSeguro = String(valorAtual || '').replace(/"/g, '&quot;');
+            return `<input type="text" value="${valorSeguro}" onchange="atualizarParametroTrade('${idTrade}', '${campoTrade}', this.value)" placeholder="${placeholder}" class="bg-[#0d1117] border border-gray-700 text-[11px] text-gray-200 rounded px-2 py-1 outline-none focus:border-blue-500 w-full min-w-[110px]">`;
+        }
+
+        function verificarUsaCestaAtiva(valor) {
+            if (valor === true || valor === 1) return true;
+            if (typeof valor === 'string') {
+                const v = valor.trim().toLowerCase();
+                return v === 'true' || v === '1';
+            }
+            return false;
+        }
+
+        function gerarSelectAtivoCesta(ativoAtual) {
+            const itensCesta = obterOpcoesParametro('cesta_ativos');
+            let options = `<option value="">Ativo...</option>`;
+            let listaNomes = [];
+            if (itensCesta && itensCesta.length > 0) {
+                listaNomes = itensCesta.map(i => typeof i === 'object' ? i.nome : i);
+            }
+            if (listaNomes.length === 0) {
+                listaNomes = ['PETR4', 'VALE3', 'ITUB4', 'BBDC3'];
+            }
+            listaNomes.sort((a, b) => a.toString().toLowerCase().localeCompare(b.toString().toLowerCase(), 'pt-BR'));
+            listaNomes.forEach(nome => {
+                const nomeEscapado = String(nome).replace(/"/g, '&quot;');
+                const sel = (nome === ativoAtual) ? 'selected' : '';
+                options += `<option value="${nomeEscapado}" ${sel}>${nomeEscapado}</option>`;
+            });
+            return options;
+        }
+
+        function gerarBlocoCestaAtivos(t, idTrade) {
+            const usaCesta = verificarUsaCestaAtiva(t.usaCesta);
+            const cestaPadrao = obterOpcoesParametro('cesta_ativos');
+            
+            const a1 = t.ativo1 || (cestaPadrao[0] ? (cestaPadrao[0].nome || cestaPadrao[0]) : 'PETR4');
+            const a2 = t.ativo2 || (cestaPadrao[1] ? (cestaPadrao[1].nome || cestaPadrao[1]) : 'VALE3');
+            const a3 = t.ativo3 || (cestaPadrao[2] ? (cestaPadrao[2].nome || cestaPadrao[2]) : 'ITUB4');
+            const a4 = t.ativo4 || (cestaPadrao[3] ? (cestaPadrao[3].nome || cestaPadrao[3]) : 'BBDC3');
+
+            const e1 = t.estado1 || '';
+            const e2 = t.estado2 || '';
+            const e3 = t.estado3 || '';
+            const e4 = t.estado4 || '';
+
+            const criarSelectEstado = (num, estadoAtual) => `
+                <select onchange="atualizarCestaTrade('${idTrade}', 'estado${num}', this.value)" class="bg-[#0d1117] border border-gray-700 text-[10px] text-gray-200 rounded px-1 py-0.5 outline-none focus:border-blue-500">
+                    <option value="">-</option>
+                    <option value="Alta" ${estadoAtual === 'Alta' ? 'selected' : ''}>Alta</option>
+                    <option value="Baixa" ${estadoAtual === 'Baixa' ? 'selected' : ''}>Baixa</option>
+                    <option value="Neutro" ${estadoAtual === 'Neutro' ? 'selected' : ''}>Neutro</option>
+                </select>`;
+
+            const criarSelectAtivo = (num, ativoAtual) => `
+                <select onchange="atualizarCestaTrade('${idTrade}', 'ativo${num}', this.value)" class="w-16 bg-[#0d1117] border border-gray-700 text-white font-mono text-[10px] rounded px-1 py-0.5 outline-none focus:border-blue-500">
+                    ${gerarSelectAtivoCesta(ativoAtual)}
+                </select>`;
+
+            return `
+                <div class="relative inline-block text-left w-full">
+                    <button type="button" onclick="toggleDropdownCesta('${idTrade}')" id="btnCestaToggle_${idTrade}" class="w-full bg-gray-950 border border-gray-700 hover:border-amber-500 text-xs px-2 py-1.5 rounded flex items-center justify-between gap-1 transition">
+                        <span id="textoCestaBadge_${idTrade}" class="font-mono text-[11px] ${usaCesta ? 'text-amber-400 font-bold' : 'text-gray-400'}">
+                            ${usaCesta ? 'Ativo' : 'Inativo'}
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-[9px] text-gray-400"></i>
+                    </button>
+
+                    <div id="painelCesta_${idTrade}" class="hidden absolute right-0 mt-1 w-52 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-2.5 z-50 text-xs space-y-2">
+                        <div class="flex items-center justify-between border-b border-gray-800 pb-1.5">
+                            <label class="flex items-center gap-1.5 cursor-pointer select-none text-[11px] text-amber-400 font-semibold">
+                                <input type="checkbox" id="chkUsaCesta_${idTrade}" ${usaCesta ? 'checked' : ''} onchange="toggleUsaCestaTrade('${idTrade}', this.checked)" class="rounded bg-gray-950 border-gray-700 text-amber-500">
+                                <span>Ativar Cesta</span>
+                            </label>
+                            <button type="button" onclick="toggleDropdownCesta('${idTrade}')" class="text-gray-400 hover:text-white text-xs px-1">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <div class="space-y-1 pt-1">
+                            <div class="flex items-center justify-between gap-1 bg-gray-950 px-1.5 py-1 rounded">
+                                ${criarSelectAtivo(1, a1)}
+                                ${criarSelectEstado(1, e1)}
+                            </div>
+                            <div class="flex items-center justify-between gap-1 bg-gray-950 px-1.5 py-1 rounded">
+                                ${criarSelectAtivo(2, a2)}
+                                ${criarSelectEstado(2, e2)}
+                            </div>
+                            <div class="flex items-center justify-between gap-1 bg-gray-950 px-1.5 py-1 rounded">
+                                ${criarSelectAtivo(3, a3)}
+                                ${criarSelectEstado(3, e3)}
+                            </div>
+                            <div class="flex items-center justify-between gap-1 bg-gray-950 px-1.5 py-1 rounded">
+                                ${criarSelectAtivo(4, a4)}
+                                ${criarSelectEstado(4, e4)}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function atualizarBadgeTextoCesta(idTrade, estaAtiva) {
+            const spanBadge = document.getElementById(`textoCestaBadge_${idTrade}`);
+            if (spanBadge) {
+                spanBadge.className = `font-mono text-[11px] ${estaAtiva ? 'text-amber-400 font-bold' : 'text-gray-400'}`;
+                spanBadge.textContent = estaAtiva ? 'Ativo' : 'Inativo';
+            }
+        }
+
+        window.toggleDropdownCesta = function(idTrade) {
+            const painel = document.getElementById(`painelCesta_${idTrade}`);
+            if (!painel) return;
+            document.querySelectorAll('[id^="painelCesta_"]').forEach(el => {
+                if (el.id !== `painelCesta_${idTrade}`) el.classList.add('hidden');
+            });
+            painel.classList.toggle('hidden');
+        };
+
+        window.toggleUsaCestaTrade = async function(idTrade, marcado) {
+            const trade = cacheTradesMemoriaBrutos.find(t => t.id === idTrade);
+            if (!trade) return;
+            trade.usaCesta = marcado ? 'true' : 'false';
+            
+            if (marcado && (!trade.ativo1)) {
+                const cestaPadrao = obterOpcoesParametro('cesta_ativos');
+                trade.ativo1 = cestaPadrao[0] ? (cestaPadrao[0].nome || cestaPadrao[0]) : 'PETR4';
+                trade.ativo2 = cestaPadrao[1] ? (cestaPadrao[1].nome || cestaPadrao[1]) : 'VALE3';
+                trade.ativo3 = cestaPadrao[2] ? (cestaPadrao[2].nome || cestaPadrao[2]) : 'ITUB4';
+                trade.ativo4 = cestaPadrao[3] ? (cestaPadrao[3].nome || cestaPadrao[3]) : 'BBDC3';
+            }
+
+            atualizarBadgeTextoCesta(idTrade, marcado);
+            await salvarLoteBackend([higienizarTradeObjeto(trade)]);
+        };
+
+        window.atualizarCestaTrade = async function(idTrade, campo, valor) {
+            const trade = cacheTradesMemoriaBrutos.find(t => t.id === idTrade);
+            if (!trade) return;
+            trade[campo] = valor;
+
+            if (!verificarUsaCestaAtiva(trade.usaCesta)) {
+                trade.usaCesta = 'true';
+                const chk = document.getElementById(`chkUsaCesta_${idTrade}`);
+                if (chk) chk.checked = true;
+                atualizarBadgeTextoCesta(idTrade, true);
+            }
+
+            await salvarLoteBackend([higienizarTradeObjeto(trade)]);
+        };
+
+        // Rota Relativa e Suporte a Autenticação
+        window.carregarTradesPainel = async function() {
+            try {
+                const response = await fetch("/api/trades", {
+                    credentials: "same-origin"
+                });
+                if (!response.ok) throw new Error("Erro ao carregar trades do servidor.");
+                const trades = await response.json();
+                cacheTradesMemoriaBrutos = ordenarTradesDecrescente(trades.map(higienizarTradeObjeto));
+                
+                aplicarFiltroPeriodoMemoria();
+            } catch (err) {
+                console.error("Erro ao conectar com FastAPI:", err);
+            }
+        };
+
+        // Rota Relativa e Suporte a Autenticação
+        async function salvarLoteBackend(tradesLote) {
+            try {
+                const loteSanitizado = tradesLote.map(higienizarTradeObjeto);
+                const response = await fetch("/api/trades/lote", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "same-origin",
+                    body: JSON.stringify(loteSanitizado)
+                });
+                return response.ok;
+            } catch (err) {
+                console.error("Erro ao salvar lote no FastAPI:", err);
+                return false;
+            }
+        }
+
+        window.atualizarParametroTrade = async function(idTrade, campo, valor) {
+            const trade = cacheTradesMemoriaBrutos.find(t => t.id === idTrade);
+            if (!trade) return;
+            trade[campo] = valor;
+            await salvarLoteBackend([higienizarTradeObjeto(trade)]);
+        };
+
+        window.excluirOperacaoIndividual = async function(idTrade) {
+            if (confirm("Deseja realmente excluir esta operação permanentemente?")) {
+                try {
+                    const response = await fetch(`/api/trades/${idTrade}`, { 
+                        method: "DELETE",
+                        credentials: "same-origin"
+                    });
+                    if (response.ok) {
+                        carregarTradesPainel();
+                    } else {
+                        alert("Erro ao excluir operação no servidor.");
+                    }
+                } catch (err) {
+                    console.error("Erro na exclusão:", err);
+                }
+            }
+        };
+
+        window.limparBase = async function() {
+            if (confirm("Deseja limpar toda a base de operações do servidor?")) {
+                try {
+                    const response = await fetch("/api/trades", { 
+                        method: "DELETE",
+                        credentials: "same-origin"
+                    });
+                    if (response.ok) {
+                        carregarTradesPainel();
+                    } else {
+                        alert("Erro ao limpar base.");
+                    }
+                } catch (err) {
+                    console.error("Erro ao limpar base:", err);
+                }
+            }
+        };
+
+        function gerarBotaoNotaModal(valorAtual, idTrade) {
+            const possuiTexto = valorAtual && valorAtual.trim() !== '';
+            const corBtn = possuiTexto ? 'bg-blue-600/20 text-blue-400 border-blue-500/40 hover:bg-blue-600/30' : 'bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700 hover:text-gray-200';
+            const textoBtn = possuiTexto ? 'Ver/Editar Nota' : 'Adicionar Nota';
+            return `<button onclick="abrirModalNota('${idTrade}')" class="w-full border px-2.5 py-1 rounded text-[11px] font-semibold flex items-center justify-center gap-1.5 transition ${corBtn}"><i class="fa-solid fa-pen-to-square text-xs"></i> <span class="truncate">${textoBtn}</span></button>`;
+        }
+
+        window.abrirModalNota = function(idTrade) {
+            tradeAtualParaNota = idTrade;
+            const trade = cacheTradesMemoriaBrutos.find(t => t.id === idTrade);
+            const textarea = document.getElementById('textareaNotaModal');
+            if (textarea) textarea.value = trade ? (trade.nota || '') : '';
+            
+            const modal = document.getElementById('modalNotaCustom');
+            if (modal) {
+                modal.classList.remove('hidden');
+                setTimeout(() => { if(textarea) textarea.focus(); }, 50);
+            }
+        };
+
+        window.fecharModalNota = function() {
+            const modal = document.getElementById('modalNotaCustom');
+            if (modal) modal.classList.add('hidden');
+            tradeAtualParaNota = null;
+        };
+
+        window.salvarNotaModal = async function() {
+            if (!tradeAtualParaNota) return;
+            const textarea = document.getElementById('textareaNotaModal');
+            const novaNota = textarea ? textarea.value : '';
+            const btn = document.getElementById('btnSalvarNotaModal');
+
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Salvando...";
+            }
+            
+            const trade = cacheTradesMemoriaBrutos.find(t => t.id === tradeAtualParaNota);
+            if (trade) {
+                trade.nota = novaNota;
+                await salvarLoteBackend([higienizarTradeObjeto(trade)]);
+            }
+
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = "Salvar Nota";
+            }
+
+            fecharModalNota();
+            aplicarFiltroPeriodoMemoria();
+        };
+
+        window.abrirModalPrint = function(idTrade) {
+            tradeAtualParaPrint = idTrade;
+            arquivoPrintPendenteBlob = null;
+
+            document.getElementById('placeholderPrintInfo').classList.remove('hidden');
+            document.getElementById('previewContainerPrint').classList.add('hidden');
+            document.getElementById('imgPreviewPrint').src = '';
+            
+            const btnSalvar = document.getElementById('btnSalvarPrintModal');
+            btnSalvar.disabled = true;
+            btnSalvar.className = 'bg-blue-600/50 cursor-not-allowed text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow';
+
+            const modal = document.getElementById('modalPrintCustom');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.fecharModalPrint = function() {
+            const modal = document.getElementById('modalPrintCustom');
+            if (modal) modal.classList.add('hidden');
+            tradeAtualParaPrint = null;
+            arquivoPrintPendenteBlob = null;
+        };
+
+        function exibirPreviewPrintBlob(blob, previewUrl) {
+            arquivoPrintPendenteBlob = blob;
+            document.getElementById('placeholderPrintInfo').classList.add('hidden');
+            document.getElementById('previewContainerPrint').classList.remove('hidden');
+            document.getElementById('imgPreviewPrint').src = previewUrl;
+
+            const btnSalvar = document.getElementById('btnSalvarPrintModal');
+            btnSalvar.disabled = false;
+            btnSalvar.className = 'bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg text-xs font-semibold transition shadow cursor-pointer';
+        }
+
+        document.addEventListener('paste', async function(e) {
+            const modalPrint = document.getElementById('modalPrintCustom');
+            if (!modalPrint || modalPrint.classList.contains('hidden')) return;
+
+            const items = e.clipboardData || e.originalEvent.clipboardData;
+            if (!items || !items.items) return;
+
+            for (let i = 0; i < items.items.length; i++) {
+                if (items.items[i].type.indexOf('image') !== -1) {
+                    const blob = items.items[i].getAsFile();
+                    exibirPreviewPrintBlob(blob, URL.createObjectURL(blob));
+                    break;
+                }
+            }
+        });
+
+        window.processarUploadPrintDireto = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            exibirPreviewPrintBlob(file, URL.createObjectURL(file));
+            event.target.value = '';
+        };
+
+        window.salvarPrintModal = async function() {
+            if (!tradeAtualParaPrint || !arquivoPrintPendenteBlob) return;
+            
+            const btnSalvar = document.getElementById('btnSalvarPrintModal');
+            btnSalvar.textContent = "Enviando...";
+            btnSalvar.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append("file", arquivoPrintPendenteBlob, "print_operacao.jpg");
+
+                const response = await fetch("/api/upload-print", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error("Erro ao enviar imagem.");
+                const resultado = await response.json();
+                
+                if (resultado.success && resultado.url) {
+                    const trade = cacheTradesMemoriaBrutos.find(t => t.id === tradeAtualParaPrint);
+                    if (trade) {
+                        trade.printUrl = resultado.url;
+                        await salvarLoteBackend([higienizarTradeObjeto(trade)]);
+                    }
+                    fecharModalPrint();
+                    aplicarFiltroPeriodoMemoria();
+                }
+            } catch (err) {
+                console.error("Erro no upload do print:", err);
+                alert("Erro de conexão com o servidor FastAPI.");
+            } finally {
+                btnSalvar.textContent = "Salvar Print";
+                btnSalvar.disabled = false;
+            }
+        };
+
+        window.visualizarPrint = function(url) {
+            if (!url) return;
+            const win = window.open();
+            win.document.write(`<iframe src="${url}" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>`);
+        };
+
+        window.excluirPrint = async function(idTrade) {
+            if (confirm("Deseja realmente apagar o print desta operação?")) {
+                const trade = cacheTradesMemoriaBrutos.find(t => t.id === idTrade);
+                if (trade) {
+                    trade.printUrl = '';
+                    await salvarLoteBackend([higienizarTradeObjeto(trade)]);
+                }
+                aplicarFiltroPeriodoMemoria();
+            }
+        };
+
+        window.acionarImportacaoCSV = function() {
+            document.getElementById('inputCsvOculto').click();
+        };
+
+        function sincronizarContaAutomatica(numConta) {
+            if (!numConta || numConta === '-' || numConta.trim() === '') return;
+            try {
+                let contas = JSON.parse(localStorage.getItem(STORAGE_KEY_CONTAS) || '[]');
+                const existe = contas.some(c => c.id.toString().trim() === numConta.toString().trim());
+                if (!existe) {
+                    contas.push({
+                        id: numConta.toString().trim(),
+                        corretora: 'Nova Corretora',
+                        tipo: 'Mesa Proprietária',
+                        taxaWin: '1.00',
+                        taxaDol: '3.00'
+                    });
+                    localStorage.setItem(STORAGE_KEY_CONTAS, JSON.stringify(contas));
+                }
+            } catch (e) {}
+        }
+
+        window.processarArquivoCsv = function(event) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+
+            const leitor = new FileReader();
+            leitor.readAsText(arquivo, 'ISO-8859-1');
+
+            leitor.onload = async function(e) {
+                try {
+                    const conteudo = e.target.result;
+                    const linhas = conteudo.split(/\r\n|\n/).filter(l => l.trim() !== '');
+                    if (linhas.length < 2) {
+                        alert('O arquivo selecionado não possui linhas de dados válidas.');
+                        return;
+                    }
+
+                    let contaDetectada = null;
+                    for (let i = 0; i < Math.min(2, linhas.length); i++) {
+                        const l = linhas[i];
+                        if (l.toUpperCase().includes('CONTA:')) {
+                            const partes = l.split(':');
+                            if (partes.length > 1) contaDetectada = partes[1].replace(/[^0-9]/g, '').trim();
+                        }
+                    }
+
+                    let indexCabecalho = -1;
+                    for (let i = 0; i < linhas.length; i++) {
+                        const lUpper = linhas[i].toUpperCase();
+                        if (lUpper.includes('ATIVO') && lUpper.includes('ABERTURA')) {
+                            indexCabecalho = i;
+                            break;
+                        }
+                    }
+
+                    if (indexCabecalho === -1) {
+                        alert('Não foi possível localizar o cabeçalho de colunas do Profit no arquivo.');
+                        return;
+                    }
+
+                    const separador = linhas[indexCabecalho].includes(';') ? ';' : ',';
+                    const cabecalho = linhas[indexCabecalho].split(separador).map(h => h.replace(/^"|"$/g, '').trim().toUpperCase());
+
+                    let novosTradesLote = [];
+
+                    for (let i = indexCabecalho + 1; i < linhas.length; i++) {
+                        const linhaAtual = linhas[i].trim();
+                        if (!linhaAtual || linhaAtual.startsWith('Conta:') || linhaAtual.startsWith('Titular:')) continue;
+
+                        const valores = linhaAtual.split(separador).map(v => v.replace(/^"|"$/g, '').trim());
+                        if (valores.length < 2) continue;
+
+                        let objTrade = {};
+                        cabecalho.forEach((cab, idx) => { objTrade[cab] = valores[idx] || ''; });
+
+                        const contaVal = contaDetectada || objTrade['SUBCONTA'] || objTrade['CONTA'] || '103050571';
+                        sincronizarContaAutomatica(contaVal);
+
+                        const ativoVal = objTrade['ATIVO'] || 'WIN';
+                        const aberturaVal = objTrade['ABERTURA'] || '';
+                        if (!aberturaVal || aberturaVal === '-') continue;
+
+                        const idUnico = `${contaVal.replace(/[^a-zA-Z0-9]/g, '')}_${ativoVal}_${aberturaVal.replace(/[\/\s:]/g, '')}`;
+
+                        const tradeObj = {
+                            id: idUnico,
+                            conta: contaVal.replace(/[^0-9]/g, '') || '103050571',
+                            plataforma: 'Profit',
+                            ativo: ativoVal,
+                            abertura: aberturaVal,
+                            fechamento: objTrade['FECHAMENTO'] || '',
+                            tempoOperacao: objTrade['TEMPO OPERAÇÃO'] || objTrade['TEMPO'] || '',
+                            lado: objTrade['LADO'] || (objTrade['QTD COMPRA'] && objTrade['QTD COMPRA'] !== '-' ? 'C' : 'V'),
+                            qtdCompra: objTrade['QTD COMPRA'] || '',
+                            qtdVenda: objTrade['QTD VENDA'] || '',
+                            precoCompra: objTrade['PREÇO COMPRA'] || '',
+                            precoVenda: objTrade['PREÇO VENDA'] || '',
+                            resIntervaloBruto: objTrade['RES. INTERVALO BRUTO'] || objTrade['RES. BRUTO'] || 'R$ 0,00',
+                            resIntervaloPercentual: objTrade['RES. INTERVALO (%)'] || objTrade['RES. (%)'] || '',
+                            custo: objTrade['CUSTO'] || 'R$ 0,00',
+                            resOperacao: objTrade['RES. OPERAÇÃO'] || objTrade['RES. LÍQ.'] || '',
+                            tet: objTrade['TET'] || '',
+                            setup: objTrade['SETUP'] || '',
+                            complementoSetup: objTrade['COMPL. SETUP'] || '',
+                            timeframe: objTrade['TIMEFRAME'] || '',
+                            tipoEntrada: objTrade['TIPO ENTRADA'] || '',
+                            tipoSaida: objTrade['TIPO SAÍDA'] || '',
+                            checklist: objTrade['CHECKLIST'] || '',
+                            falhas: objTrade['FALHAS'] || '',
+                            mmTend: objTrade['MM TEND.'] || '',
+                            vwapTend: objTrade['VWAP TEND.'] || '',
+                            resSupProx: objTrade['RES/SUP PRÓX.'] || '',
+                            momento: objTrade['MOMENTO'] ? objTrade['MOMENTO'].toUpperCase() : '',
+                            precoLimite: objTrade['PREÇO LIMITE'] || '',
+                            nota: '',
+                            printUrl: '',
+                            emocional: '',
+                            usaCesta: 'false',
+                            ativo1: '',
+                            estado1: '',
+                            ativo2: '',
+                            estado2: '',
+                            ativo3: '',
+                            estado3: '',
+                            ativo4: '',
+                            estado4: '',
+                            opcao1: '',
+                            opcao2: '',
+                            opcao3: ''
+                        };
+
+                        novosTradesLote.push(higienizarTradeObjeto(tradeObj));
+                    }
+
+                    const sucesso = await salvarLoteBackend(novosTradesLote);
+                    if (sucesso) {
+                        alert(`Importação concluída com sucesso! ${novosTradesLote.length} operações enviadas ao banco de dados em disco.`);
+                        carregarTradesPainel();
+                    } else {
+                        alert("Erro ao salvar lote de operações no FastAPI.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Erro ao processar o arquivo CSV.");
+                }
+            };
+            event.target.value = '';
+        };
+
+        function atualizarPainelMetricas(trades) {
+            let resultadoTotal = 0, lucroBruto = 0, prejuizoBruto = 0, qtdVencedoras = 0, custosTotais = 0;
+            trades.forEach(t => {
+                const valBruto = converterParaNumero(t.resIntervaloBruto || t.resBruto);
+                const custoOp = calcularCustoTrade(t);
+                resultadoTotal += valBruto;
+                custosTotais += custoOp;
+                
+                if (valBruto > 0) { 
+                    lucroBruto += valBruto; 
+                    qtdVencedoras++;
+                } else if (valBruto < 0) { 
+                    prejuizoBruto += valBruto; 
+                }
+            });
+            const resLiq = resultadoTotal - custosTotais;
+            const qtdTotal = trades.length;
+
+            document.getElementById('metricResLiq').textContent = `R$ ${resLiq.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            document.getElementById('metricResLiq').className = `text-sm font-bold font-mono mt-1 ${resLiq >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+            document.getElementById('metricResTotal').textContent = `R$ ${resultadoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            document.getElementById('metricLucroBruto').textContent = `R$ ${lucroBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            document.getElementById('metricPrejuizoBruto').textContent = `R$ ${prejuizoBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            document.getElementById('metricQtdOp').textContent = qtdTotal;
+            document.getElementById('metricVencedoras').textContent = `${(qtdTotal > 0 ? (qtdVencedoras / qtdTotal) * 100 : 0).toFixed(2)}%`;
+            document.getElementById('metricCustos').textContent = `R$ ${custosTotais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            document.getElementById('metricComissoes').textContent = `R$ 0,00`;
+        }
+
+        function renderizarTabelaTrades(trades) {
+            const tbody = document.getElementById('tabelaOperacoesCorpo');
+            if (!tbody) return;
+
+            if (trades.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="34" class="text-center py-12 text-gray-500"><i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>Nenhuma operação encontrada para o período selecionado.</td></tr>`;
+                inicializarSeletorColunas();
+                inicializarFiltroColunas();
+                setTimeout(configurarSincronizacaoScroll, 50);
+                return;
+            }
+
+            tbody.innerHTML = trades.map((t, index) => {
+                const id = t.id;
+                const isCompra = (t.lado || '').toUpperCase().includes('C') || (t.lado || '').toUpperCase().includes('COMPRA');
+                const qtd = t.qtdCompra && t.qtdCompra !== '-' ? t.qtdCompra : (t.qtdVenda && t.qtdVenda !== '-' ? t.qtdVenda : '1');
+                const bruto = converterParaNumero(t.resIntervaloBruto || t.resBruto);
+                const custo = calcularCustoTrade(t);
+                const liq = bruto - custo;
+
+                return `
+                    <tr class="hover:bg-gray-800/40 transition">
+                        <td data-col-index="0" class="py-3 px-3 text-center sticky-col sticky-col-0">
+                            <button onclick="excluirOperacaoIndividual('${id}')" class="text-red-400 hover:text-red-300 bg-red-950/40 hover:bg-red-900/60 border border-red-900/50 p-1.5 rounded transition shadow-sm" title="Excluir Operação">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </td>
+                        <td data-col-index="1" class="py-3 px-3 font-mono text-gray-500 sticky-col sticky-col-1">#${index + 1}</td>
+                        <td data-col-index="2" class="py-3 px-3 font-mono font-bold text-amber-400 whitespace-nowrap sticky-col sticky-col-2">${t.conta || '-'}</td>
+                        <td data-col-index="3" class="py-3 px-3 font-bold text-white whitespace-nowrap sticky-col sticky-col-3">${t.ativo || '-'}</td>
+                        <td data-col-index="4" class="py-3 px-3 font-mono text-gray-400 text-[11px] whitespace-nowrap sticky-col sticky-col-4">${t.abertura || '-'}</td>
+                        
+                        <td data-col-index="5" class="py-3 px-3 font-mono text-gray-400 text-[11px] whitespace-nowrap">${t.fechamento || '-'}</td>
+                        <td data-col-index="6" class="py-3 px-3 font-mono text-gray-400 whitespace-nowrap">${t.tempoOperacao || '-'}</td>
+                        <td data-col-index="7" class="py-3 px-3 text-center whitespace-nowrap"><span class="px-2 py-0.5 rounded font-bold text-[10px] ${isCompra ? 'bg-emerald-950 text-emerald-400 border border-emerald-900' : 'bg-red-950 text-red-400 border border-red-900'}">${qtd} ${isCompra ? 'C' : 'V'}</span></td>
+                        <td data-col-index="8" class="py-3 px-3 font-mono whitespace-nowrap">${t.precoCompra || '-'}</td>
+                        <td data-col-index="9" class="py-3 px-3 font-mono whitespace-nowrap">${t.precoVenda || '-'}</td>
+                        <td data-col-index="10" class="py-3 px-3 font-mono whitespace-nowrap ${bruto >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}">R$ ${bruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td data-col-index="11" class="py-3 px-3 font-mono whitespace-nowrap text-gray-300">${t.resIntervaloPercentual || '-'}</td>
+                        <td data-col-index="12" class="py-3 px-3 font-mono whitespace-nowrap text-red-400">R$ ${custo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td data-col-index="13" class="py-3 px-3 font-mono whitespace-nowrap ${liq >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}">R$ ${liq.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td data-col-index="14" class="py-3 px-3 font-mono whitespace-nowrap text-gray-400">${t.tet || '-'}</td>
+                        <td data-col-index="15" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('setups', t.setup, id, 'setup')}</td>
+                        <td data-col-index="16" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('complementos', t.complementoSetup, id, 'complementoSetup')}</td>
+                        <td data-col-index="17" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('timeframes', t.timeframe, id, 'timeframe')}</td>
+                        <td data-col-index="18" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('entradas', t.tipoEntrada, id, 'tipoEntrada')}</td>
+                        <td data-col-index="19" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('saidas', t.tipoSaida, id, 'tipoSaida')}</td>
+                        <td data-col-index="20" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('checklist', t.checklist, id, 'checklist')}</td>
+                        <td data-col-index="21" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('falhas', t.falhas, id, 'falhas')}</td>
+                        <td data-col-index="22" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('mm_tend', t.mmTend, id, 'mmTend')}</td>
+                        <td data-col-index="23" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('vwap_tend', t.vwapTend, id, 'vwapTend')}</td>
+                        <td data-col-index="24" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('res_sup_prox', t.resSupProx, id, 'resSupProx')}</td>
+                        <td data-col-index="25" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('momento', t.momento, id, 'momento')}</td>
+                        <td data-col-index="26" class="py-2 px-2 whitespace-nowrap">${gerarInputTexto(t.precoLimite, id, 'precoLimite', 'Ex: 187.450')}</td>
+                        <td data-col-index="27" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('emocional', t.emocional, id, 'emocional')}</td>
+                        <td data-col-index="28" class="py-2 px-2 whitespace-nowrap">${gerarBlocoCestaAtivos(t, id)}</td>
+                        <td data-col-index="29" class="py-2 px-2 whitespace-nowrap text-center">${gerarBotaoNotaModal(t.nota, id)}</td>
+                        <td data-col-index="30" class="py-2 px-2 whitespace-nowrap text-center">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <button onclick="abrirModalPrint('${id}')" class="bg-gray-800 hover:bg-gray-700 text-blue-400 border border-gray-700 px-2 py-1 rounded text-[11px]" title="Colar Print (Ctrl+V)">
+                                    <i class="fa-solid fa-camera"></i>
+                                </button>
+                                ${t.printUrl ? `
+                                    <button onclick="visualizarPrint('${t.printUrl}')" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-400 border border-emerald-900 px-2 py-1 rounded text-[11px]" title="Ver Print"><i class="fa-solid fa-eye"></i></button>
+                                    <button onclick="excluirPrint('${id}')" class="bg-red-950 hover:bg-red-900 text-red-400 border border-red-900 px-2 py-1 rounded text-[11px]" title="Apagar Print"><i class="fa-solid fa-trash-can"></i></button>
+                                ` : ''}
+                            </div>
+                        </td>
+
+                        <!-- NOVAS COLUNAS FLEXÍVEIS -->
+                        <td data-col-index="31" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('opcao1', t.opcao1, id, 'opcao1')}</td>
+                        <td data-col-index="32" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('opcao2', t.opcao2, id, 'opcao2')}</td>
+                        <td data-col-index="33" class="py-2 px-2 whitespace-nowrap">${gerarSelectParametro('opcao3', t.opcao3, id, 'opcao3')}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            inicializarSeletorColunas();
+            inicializarFiltroColunas();
+            setTimeout(configurarSincronizacaoScroll, 50);
+        }
+
+        window.filtrarTabelaExcel = function() {
+            const input = document.getElementById('inputFiltroTabela');
+            if (!input) return;
+            const termo = input.value.toLowerCase().trim();
+            const linhas = document.querySelectorAll('#tabelaOperacoesCorpo tr');
+            let tradesFiltrados = [];
+
+            const checkboxes = document.querySelectorAll('#listaCheckboxesFiltroColunas input[type="checkbox"]');
+            let colunasSelecionadas = [];
+            checkboxes.forEach(cb => {
+                if (cb.checked) colunasSelecionadas.push(parseInt(cb.getAttribute('data-col-index')));
+            });
+
+            const buscarVazio = (termo === 'vazio' || termo === '-');
+
+            linhas.forEach((linha, index) => {
+                let atendeFiltro = false;
+                if (termo === '') {
+                    atendeFiltro = true;
+                } else if (colunasSelecionadas.length === 0) {
+                    atendeFiltro = false;
+                } else {
+                    for (let colIdx of colunasSelecionadas) {
+                        const celula = linha.querySelector(`[data-col-index="${colIdx}"]`);
+                        if (celula) {
+                            let textoConteudo = '';
+                            const selectEl = celula.querySelector('select');
+                            const inputEl = celula.querySelector('input');
+
+                            if (selectEl) {
+                                textoConteudo = selectEl.value;
+                            } else if (inputEl) {
+                                textoConteudo = inputEl.value;
+                            } else {
+                                textoConteudo = celula.innerText;
+                            }
+
+                            if (buscarVazio) {
+                                if (!textoConteudo || textoConteudo.trim() === '' || textoConteudo.trim() === '-') {
+                                    atendeFiltro = true;
+                                    break;
+                                }
+                            } else {
+                                if (textoConteudo && textoConteudo.toLowerCase().includes(termo)) {
+                                    atendeFiltro = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (atendeFiltro) {
+                    linha.style.display = '';
+                    if (cacheTradesMemoriaFiltradosPeriodo[index]) tradesFiltrados.push(cacheTradesMemoriaFiltradosPeriodo[index]);
+                } else {
+                    linha.style.display = 'none';
+                }
+            });
+
+            atualizarPainelMetricas(tradesFiltrados);
+            configurarSincronizacaoScroll();
+        };
+
+        function configurarSincronizacaoScroll() {
+            const top = document.getElementById('scrollTopoContainer');
+            const tab = document.getElementById('scrollTabelaContainer');
+            const fake = document.getElementById('scrollTopoFake');
+            const tabela = document.getElementById('tabelaOperacoes');
+            if (!top || !tab || !fake || !tabela) return;
+
+            fake.style.width = `${tabela.scrollWidth}px`;
+            top.onscroll = () => { tab.scrollLeft = top.scrollLeft; };
+        }
+
+        function inicializarSeletorColunas() {
+            const tabela = document.getElementById('tabelaOperacoes');
+            if (!tabela) return;
+            const ths = tabela.querySelectorAll('thead th');
+            const lista = document.getElementById('listaCheckboxesColunas');
+            if (!lista) return;
+
+            let visiveis = JSON.parse(localStorage.getItem(STORAGE_KEY_COLUNAS) || '[]');
+            if (visiveis.length === 0) visiveis = Array.from({length: ths.length}, (_, i) => i);
+
+            lista.innerHTML = '';
+            ths.forEach((th, index) => {
+                if (index === 0) return;
+                const nome = th.innerText.trim().replace(/\s+/g, ' ');
+                lista.innerHTML += `<label class="flex items-center gap-2 cursor-pointer hover:bg-gray-800 p-1 rounded"><input type="checkbox" data-col-index="${index}" ${visiveis.includes(index) ? 'checked' : ''} onchange="window.atualizarVisibilidadeColunas()" class="rounded bg-gray-950 border-gray-700 text-blue-600"><span class="text-gray-300">${nome}</span></label>`;
+            });
+            aplicarVisibilidadeColunas(visiveis);
+        }
+
+        window.toggleMenuColunas = function() {
+            document.getElementById('menuColunas').classList.toggle('hidden');
+        };
+
+        window.marcarTodasColunas = function(marcar) {
+            document.querySelectorAll('#listaCheckboxesColunas input').forEach(cb => cb.checked = marcar);
+            window.atualizarVisibilidadeColunas();
+        };
+
+        window.atualizarVisibilidadeColunas = function() {
+            let visiveis = [0];
+            document.querySelectorAll('#listaCheckboxesColunas input').forEach(cb => { if (cb.checked) visiveis.push(parseInt(cb.dataset.colIndex)); });
+            localStorage.setItem(STORAGE_KEY_COLUNAS, JSON.stringify(visiveis));
+            aplicarVisibilidadeColunas(visiveis);
+            configurarSincronizacaoScroll();
+        }
+
+        function aplicarVisibilidadeColunas(visiveis) {
+            const tabela = document.getElementById('tabelaOperacoes');
+            if (!tabela) return;
+            tabela.querySelectorAll('tr').forEach(tr => {
+                tr.querySelectorAll('th, td').forEach((cel, i) => {
+                    if (i > 0) cel.style.display = visiveis.includes(i) ? '' : 'none';
+                });
+            });
+        }
+
+        function inicializarFiltroColunas() {
+            const tabela = document.getElementById('tabelaOperacoes');
+            if (!tabela) return;
+            const ths = tabela.querySelectorAll('thead th');
+            const lista = document.getElementById('listaCheckboxesFiltroColunas');
+            if (!lista) return;
+
+            let filtroSalvo = JSON.parse(localStorage.getItem(STORAGE_KEY_FILTRO_COLUNAS) || '[]');
+            const primeiraVez = filtroSalvo.length === 0 && !localStorage.getItem(STORAGE_KEY_FILTRO_COLUNAS);
+            
+            lista.innerHTML = '';
+            ths.forEach((th, index) => {
+                if (index === 0) return;
+                const nome = th.innerText.trim().replace(/\s+/g, ' ');
+                const isChecked = primeiraVez || filtroSalvo.includes(index) ? 'checked' : '';
+
+                lista.innerHTML += `
+                    <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-800 p-1 rounded">
+                        <input type="checkbox" data-col-index="${index}" ${isChecked} onchange="window.atualizarFiltroColunasSelecao()" class="rounded bg-gray-950 border-gray-700 text-blue-600">
+                        <span class="text-gray-300">${nome}</span>
+                    </label>`;
+            });
+            atualizarLabelFiltroColunas(filtroSalvo, primeiraVez);
+        }
+
+        window.toggleMenuFiltroColunas = function() {
+            document.getElementById('menuFiltroColunas').classList.toggle('hidden');
+        };
+
+        window.marcarTodasFiltro = function(marcar) {
+            document.querySelectorAll('#listaCheckboxesFiltroColunas input').forEach(cb => cb.checked = marcar);
+            window.atualizarFiltroColunasSelecao();
+        };
+
+        window.atualizarFiltroColunasSelecao = function() {
+            let selecionadas = [];
+            document.querySelectorAll('#listaCheckboxesFiltroColunas input').forEach(cb => {
+                if (cb.checked) selecionadas.push(parseInt(cb.dataset.colIndex));
+            });
+            localStorage.setItem(STORAGE_KEY_FILTRO_COLUNAS, JSON.stringify(selecionadas));
+            atualizarLabelFiltroColunas(selecionadas, false);
+            filtrarTabelaExcel();
+        }
+
+        function atualizarLabelFiltroColunas(selecionadas, primeiraVez) {
+            const label = document.getElementById('labelFiltroColunasSelecionadas');
+            const totalColunas = document.querySelectorAll('#tabelaOperacoes thead th').length - 1;
+            if (primeiraVez || selecionadas.length === totalColunas) {
+                label.textContent = "Filtrar em: Todas as Colunas";
+            } else if (selecionadas.length === 0) {
+                label.textContent = "Filtrar em: Nenhuma Coluna";
+            } else {
+                label.textContent = `Filtrar em: ${selecionadas.length} coluna(s) selecionada(s)`;
+            }
+        }
+
+        // Inicialização
+        carregarTradesPainel();
+    })();
+</script>

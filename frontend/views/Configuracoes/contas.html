@@ -1,0 +1,182 @@
+<!-- 
+ ================================================================================================
+  ARQUIVO: contas.html (Gerenciamento de Contas, Taxas Operacionais e Parâmetros Fiscais)
+  ATUALIZADO EM: 2026-10-12
+ ================================================================================================
+-->
+<div class="space-y-4">
+    <!-- Cabeçalho Interno -->
+    <div class="flex justify-between items-center bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-md">
+        <div>
+            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                <i class="fa-solid fa-wallet text-indigo-400"></i> Cadastro de Contas & Taxas
+            </h2>
+            <p class="text-xs text-gray-400 mt-0.5">Gerencie corretoras, tipos de contas, taxas operacionais, modelo de metas e parâmetros contratuais.</p>
+        </div>
+    </div>
+
+    <!-- Tabela de Contas -->
+    <div class="bg-gray-900 border border-gray-800 rounded-lg shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead class="bg-gray-950 text-gray-400 uppercase tracking-wider border-b border-gray-800">
+                    <tr>
+                        <th class="p-3"><i class="fa-solid fa-lock text-gray-500 mr-1"></i> ID / Conta</th>
+                        <th class="p-3">Corretora</th>
+                        <th class="p-3">Tipo de Conta</th>
+                        <th class="p-3">Modelo de Meta</th>
+                        <th class="p-3">Taxa WIN / WDO (R$)</th>
+                        <th class="p-3">Dedo-Duro (%)</th>
+                        <th class="p-3">Imposto PJ / Lucro (%)</th>
+                        <th class="p-3">Taxa Mesa / Split (%)</th>
+                        <th class="p-3">Notas / Regras do Contrato</th>
+                        <th class="p-3 text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoTabelaContas" class="divide-y divide-gray-800 text-gray-300">
+                    <!-- Preenchido dinamicamente via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.sincronizarContaAutomatica = function(numeroConta) {
+        if (!numeroConta || numeroConta.trim() === '' || numeroConta === '-') return;
+        
+        let contas = [];
+        try {
+            contas = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
+        } catch(e) {
+            contas = [];
+        }
+
+        const existe = contas.some(function(c) {
+            return c.id.toString().trim() === numeroConta.toString().trim();
+        });
+
+        if (!existe) {
+            contas.push({
+                id: numeroConta.toString().trim(),
+                corretora: 'Nova Corretora',
+                tipo: 'Real',
+                modeloMeta: 'sazonal',
+                taxaWin: '0.00',
+                taxaDol: '0.00',
+                dedoDuro: '1.00',
+                impostoPJ: '19.00',
+                taxaMesa: '0.00',
+                notas: ''
+            });
+            localStorage.setItem('cockpit_contas_completo', JSON.stringify(contas));
+        }
+    };
+
+    function carregarContas() {
+        let contas = [];
+        try {
+            contas = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
+        } catch(e) {
+            contas = [];
+        }
+
+        const tbody = document.getElementById('corpoTabelaContas');
+        if (!tbody) return;
+
+        if (contas.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-12 text-gray-500"><i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>Nenhuma conta cadastrada. Importe um ficheiro CSV no módulo de Operações para registar a sua conta automaticamente.</td></tr>';
+            return;
+        }
+
+        let htmlRows = '';
+        for (let i = 0; i < contas.length; i++) {
+            const c = contas[i];
+            const isMesa = c.tipo === 'Mesa';
+            const modeloAtual = c.modeloMeta || 'sazonal';
+            
+            htmlRows += '<tr class="hover:bg-gray-800/40 transition align-top">' +
+                '<td class="p-3 font-mono text-gray-400 flex items-center gap-2">' +
+                    '<i class="fa-solid fa-lock text-gray-600 text-[10px]" title="ID gerado automaticamente via importação"></i>' +
+                    '<input type="text" value="' + c.id + '" readonly class="bg-gray-950 border border-gray-800 rounded px-2 py-1 text-gray-400 w-24 cursor-not-allowed outline-none">' +
+                '</td>' +
+                '<td class="p-3">' +
+                    '<input type="text" value="' + (c.corretora || '') + '" onchange="atualizarConta(' + i + ', \'corretora\', this.value)" class="bg-[#0d1117] border border-gray-700 rounded px-2 py-1 text-white w-28 outline-none focus:border-blue-500">' +
+                '</td>' +
+                '<td class="p-3">' +
+                    '<select onchange="atualizarConta(' + i + ', \'tipo\', this.value); carregarContas();" class="bg-[#0d1117] border border-gray-700 rounded px-2 py-1 text-white w-28 outline-none focus:border-blue-500">' +
+                        '<option value="Simulador" ' + (c.tipo === 'Simulador' ? 'selected' : '') + '>Simulador</option>' +
+                        '<option value="Real" ' + (c.tipo === 'Real' ? 'selected' : '') + '>Real</option>' +
+                        '<option value="Mesa" ' + (c.tipo === 'Mesa' ? 'selected' : '') + '>Mesa Prop.</option>' +
+                    '</select>' +
+                '</td>' +
+                '<td class="p-3">' +
+                    '<select onchange="atualizarModeloConta(' + i + ', this.value)" class="bg-[#0d1117] border border-amber-500/50 rounded px-2 py-1 text-amber-400 w-36 outline-none focus:border-amber-500 font-semibold">' +
+                        '<option value="sazonal" ' + (modeloAtual === 'sazonal' ? 'selected' : '') + '>Matriz Sazonal (Fixa)</option>' +
+                        '<option value="reinvestimento" ' + (modeloAtual === 'reinvestimento' ? 'selected' : '') + '>Matriz de Reinvestimento</option>' +
+                    '</select>' +
+                '</td>' +
+                '<td class="p-3 font-mono">' +
+                    '<div class="space-y-1">' +
+                        '<div class="flex items-center gap-1 text-[10px] text-gray-400">WIN: <input type="text" value="' + (c.taxaWin || '0.00') + '" onchange="atualizarConta(' + i + ', \'taxaWin\', this.value)" class="bg-[#0d1117] border border-gray-700 rounded px-1.5 py-0.5 text-white w-16 outline-none focus:border-blue-500"></div>' +
+                        '<div class="flex items-center gap-1 text-[10px] text-gray-400">WDO: <input type="text" value="' + (c.taxaDol || '0.00') + '" onchange="atualizarConta(' + i + ', \'taxaDol\', this.value)" class="bg-[#0d1117] border border-gray-700 rounded px-1.5 py-0.5 text-white w-16 outline-none focus:border-blue-500"></div>' +
+                    '</div>' +
+                '</td>' +
+                '<td class="p-3">' +
+                    '<input type="text" value="' + (c.dedoDuro !== undefined ? c.dedoDuro : '1.00') + '" onchange="atualizarConta(' + i + ', \'dedoDuro\', this.value)" class="bg-[#0d1117] border border-gray-700 rounded px-2 py-1 text-white w-20 outline-none focus:border-blue-500 font-mono" title="Retenção fonte Day Trade (ex: 1%)" placeholder="1.00">' +
+                '</td>' +
+                '<td class="p-3">' +
+                    '<input type="text" value="' + (c.impostoPJ !== undefined ? c.impostoPJ : '19.00') + '" onchange="atualizarConta(' + i + ', \'impostoPJ\', this.value)" class="bg-[#0d1117] border border-gray-700 rounded px-2 py-1 text-white w-20 outline-none focus:border-blue-500 font-mono" title="Tributação mensal sobre lucro (ex: 19%)" placeholder="19.00">' +
+                '</td>' +
+                '<td class="p-3">' +
+                    (isMesa ? 
+                        '<input type="text" value="' + (c.taxaMesa || '0.00') + '" onchange="atualizarConta(' + i + ', \'taxaMesa\', this.value)" class="bg-amber-950/30 border border-amber-700/60 rounded px-2 py-1 text-amber-300 w-20 outline-none focus:border-amber-500 font-mono" title="Split ou taxa da mesa (ex: 30%)" placeholder="30.00">' :
+                        '<span class="text-gray-600 text-[11px] italic">N/A</span>'
+                    ) +
+                '</td>' +
+                '<td class="p-3">' +
+                    '<textarea onchange="atualizarConta(' + i + ', \'notas\', this.value)" class="bg-[#0d1117] border border-gray-700 rounded px-2 py-1 text-gray-200 w-44 h-14 outline-none focus:border-blue-500 text-[11px] resize-none" placeholder="Ex: Book 6K - Meta R$ 6k...">' + (c.notas || '') + '</textarea>' +
+                '</td>' +
+                '<td class="p-3 text-center">' +
+                    '<button onclick="excluirConta(' + i + ')" class="text-red-400 hover:text-red-300 text-xs px-2 py-1 bg-red-950/40 border border-red-900/50 rounded transition">Excluir</button>' +
+                '</td>' +
+            '</tr>';
+        }
+
+        tbody.innerHTML = htmlRows;
+    }
+
+    window.atualizarConta = function(index, campo, valor) {
+        let contas = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
+        if (contas[index]) {
+            contas[index][campo] = valor;
+            localStorage.setItem('cockpit_contas_completo', JSON.stringify(contas));
+        }
+    };
+
+    window.atualizarModeloConta = function(index, novoModelo) {
+        let contas = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
+        if (contas[index]) {
+            const modeloAnterior = contas[index].modeloMeta || 'sazonal';
+            if (modeloAnterior !== novoModelo) {
+                const confirmar = confirm('Aviso: Ao alterar o modelo de meta desta conta, os dados preenchidos na tabela de metas anterior poderão ser limpos ou reconfigurados. Deseja realmente prosseguir?');
+                if (!confirmar) {
+                    carregarContas(); // Restaura o select visualmente
+                    return;
+                }
+            }
+            contas[index].modeloMeta = novoModelo;
+            localStorage.setItem('cockpit_contas_completo', JSON.stringify(contas));
+        }
+    };
+
+    window.excluirConta = function(index) {
+        let contas = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
+        contas.pop(); // ou splice
+        contas.splice(index, 1);
+        localStorage.setItem('cockpit_contas_completo', JSON.stringify(contas));
+        carregarContas();
+    };
+
+    carregarContas();
+</script>

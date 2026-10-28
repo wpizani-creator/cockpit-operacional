@@ -1,0 +1,46 @@
+{
+    "time_frames": [
+        "1 min",
+        "5 min",
+        "15 min",
+        "60 min",
+        "Diário"
+    ],
+    "tipos_entrada": [
+        "Romp",
+        "Reteste",
+        "Abertura",
+        "Ponto Contínuo"
+    ],
+    "tipos_alvo": [
+        "Alvo",
+        "Fibo 100",
+        "Fibo 161",
+        "Parcial"
+    ],
+    "tipos_saida": [
+        "Alvo",
+        "Stop",
+        "Manual",
+        "Inversão"
+    ],
+    "setups": [
+        "Setup Diamante",
+        "Setup Supremo",
+        "Rompimento 2º Candle",
+        "WIN 15 min"
+    ],
+    "check_list": [
+        "Ok",
+        "Parcial",
+        "Não"
+    ],
+    "falha_principal": [
+        "Nenhuma",
+        "Atraso",
+        "Ansiedade",
+        "Fora do Setup",
+        "Prematuro",
+        "Excesso de Lotes"
+    ]
+}

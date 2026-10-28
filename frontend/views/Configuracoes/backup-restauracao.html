@@ -1,0 +1,109 @@
+<!-- ========================================================================================= -->
+<!-- ARQUIVO: frontend/views/backup-restauracao.html                                           -->
+<!-- CONTEXTO: Módulo de Backup e Restauração de Dados do Cockpit Operacional                  -->
+<!-- ========================================================================================= -->
+<div class="space-y-6 max-w-4xl mx-auto">
+    <!-- Cabeçalho -->
+    <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg flex justify-between items-center">
+        <div>
+            <div class="flex items-center gap-2.5">
+                <span class="bg-amber-600/20 text-amber-400 border border-amber-500/30 p-2 rounded-lg text-sm">
+                    <i class="fa-solid fa-database"></i>
+                </span>
+                <h1 class="text-base font-bold text-white tracking-wide">Módulo: Backup & Restauração</h1>
+                <span class="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded font-mono">backup-restauracao.html</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Exporte todos os seus dados salvos no navegador (operações, cadastros, contas, setups) para um arquivo seguro ou restaure um backup anterior.</p>
+        </div>
+    </div>
+
+    <!-- Cards de Ação -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Card Exportar -->
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg flex flex-col justify-between">
+            <div>
+                <div class="text-blue-400 text-2xl mb-3"><i class="fa-solid fa-file-arrow-down"></i></div>
+                <h2 class="text-sm font-bold text-white mb-2">Fazer Backup dos Dados</h2>
+                <p class="text-xs text-gray-400 mb-6">Baixe um arquivo compactado contendo toda a base de dados atual do seu Cockpit Operacional (operações, parâmetros, contas e configurações).</p>
+            </div>
+            <button onclick="realizarBackupSistema()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition shadow">
+                <i class="fa-solid fa-download"></i> Baixar Arquivo de Backup (.json)
+            </button>
+        </div>
+
+        <!-- Card Importar / Restaurar -->
+        <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg flex flex-col justify-between">
+            <div>
+                <div class="text-emerald-400 text-2xl mb-3"><i class="fa-solid fa-file-arrow-up"></i></div>
+                <h2 class="text-sm font-bold text-white mb-2">Restaurar Sistema</h2>
+                <p class="text-xs text-gray-400 mb-6">Envie um arquivo de backup gerado anteriormente para restaurar todas as configurações e operações no seu navegador.</p>
+            </div>
+            <button onclick="document.getElementById('inputArquivoBackup').click()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition shadow">
+                <i class="fa-solid fa-upload"></i> Selecionar Arquivo e Restaurar
+            </button>
+            <input type="file" id="inputArquivoBackup" accept=".json" class="hidden" onchange="restaurarBackupSistema(event)">
+        </div>
+    </div>
+</div>
+
+<script>
+    function realizarBackupSistema() {
+        try {
+            const dadosBackup = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const chave = localStorage.key(i);
+                dadosBackup[chave] = localStorage.getItem(chave);
+            }
+
+            const blob = new Blob([JSON.stringify(dadosBackup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const dataAtual = new Date().toISOString().slice(0, 10);
+            a.download = `backup_cockpit_operacional_${dataAtual}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (erro) {
+            console.error("Erro ao gerar backup:", erro);
+            alert("Erro ao gerar backup: " + erro.message);
+        }
+    }
+
+    function restaurarBackupSistema(event) {
+        const arquivo = event.target.files[0];
+        if (!arquivo) return;
+
+        if (!confirm("Atenção: A restauração irá substituir os dados atuais pelos do arquivo de backup. Deseja continuar?")) {
+            event.target.value = '';
+            return;
+        }
+
+        const leitor = new FileReader();
+        leitor.onload = function(e) {
+            try {
+                const dadosRestaurados = JSON.parse(e.target.result);
+                
+                if (!dadosRestaurados || typeof dadosRestaurados !== 'object' || Array.isArray(dadosRestaurados)) {
+                    throw new Error("Formato de backup inválido.");
+                }
+
+                localStorage.clear();
+                for (const chave in dadosRestaurados) {
+                    if (Object.prototype.hasOwnProperty.call(dadosRestaurados, chave)) {
+                        localStorage.setItem(chave, dadosRestaurados[chave]);
+                    }
+                }
+                
+                alert("Backup restaurado com sucesso! O sistema será recarregado.");
+                location.reload();
+            } catch (erro) {
+                console.error("Erro ao ler o arquivo de backup:", erro);
+                alert("Erro ao ler o arquivo de backup. Certifique-se de que é um JSON válido gerado pelo Cockpit.");
+                event.target.value = '';
+            }
+        };
+        leitor.readAsText(arquivo);
+    }
+</script>

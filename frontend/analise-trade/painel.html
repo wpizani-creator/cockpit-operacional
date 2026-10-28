@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel Sincronizado - Análise de Trades</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-950 text-gray-100 font-sans p-6">
+    <div class="max-w-full mx-auto">
+        <header class="flex justify-between items-center mb-6 pb-4 border-b border-gray-800">
+            <div>
+                <h1 class="text-xl font-bold text-white"><i class="fa-solid fa-chart-line text-blue-500 mr-2"></i> Módulo Sincronizado: Análise de Trades</h1>
+                <p class="text-xs text-gray-400">Conectado diretamente ao banco de dados oficial via API FastAPI.</p>
+            </div>
+            <div class="flex gap-3 items-center">
+                <div class="relative">
+                    <button onclick="toggleModalColunas()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3 py-2 rounded text-xs transition flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-columns text-blue-400"></i> Filtrar Colunas
+                    </button>
+                    <div id="modalColunas" class="hidden absolute right-0 mt-2 w-64 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-4 z-50 max-h-80 overflow-y-auto">
+                        <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-800">
+                            <span class="text-xs font-bold text-gray-300">Exibir / Ocultar Colunas</span>
+                            <button onclick="toggleModalColunas()" class="text-gray-400 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div id="listaCheckboxes" class="space-y-2 text-xs"></div>
+                    </div>
+                </div>
+
+                <button onclick="carregarDadosAPI()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-xs font-semibold shadow transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate mr-1"></i> Atualizar Dados
+                </button>
+            </div>
+        </header>
+
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-4 shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <span id="statusRegistros" class="text-xs font-mono text-gray-400">0 registros carregados da API</span>
+            </div>
+            
+            <div class="overflow-x-auto max-h-[75vh] custom-scroll">
+                <table class="w-full text-left border-collapse text-xs font-mono whitespace-nowrap">
+                    <thead>
+                        <tr id="cabecalhoTabela" class="bg-gray-950 text-gray-400 border-b border-gray-800 sticky top-0 z-20">
+                            <th class="p-2.5">#</th>
+                            <th class="p-2.5">Carregando dados do servidor...</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaCorpo">
+                        <tr>
+                            <td colspan="2" class="text-center py-12 text-gray-500">
+                                Sincronizando com o banco de dados oficial...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const HIDDEN_COLS_KEY = "trades_colunas_ocultas_api_v1";
+        let cacheTradesBrutos = [];
+
+        // Cabeçalhos padrão correspondentes às chaves do modelo Trade da API
+        const CABECALHO_PADRAO = [
+            "Conta", "Ativo", "Abertura", "Fechamento", "Tempo Operação", "Lado", 
+            "Qtd Compra", "Qtd Venda", "Preço Compra", "Preço Venda", "Res. Bruto", 
+            "Res. (%)", "Custo", "Res. Líquido", "TET", "Setup", "Compl. Setup", 
+            "Timeframe", "Tipo Entrada", "Tipo Saída", "Checklist", "Falhas", 
+            "MM Tend.", "VWAP Tend.", "Res/Sup Próx.", "Momento", "Preço Limite", 
+            "Emocional", "Nota", "Print"
+        ];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            carregarDadosAPI();
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('modalColunas');
+                const btn = e.target.closest('button');
+                if (!modal.contains(e.target) && (!btn || !btn.getAttribute('onclick')?.includes('toggleModalColunas'))) {
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+
+        function toggleModalColunas() {
+            const modal = document.getElementById('modalColunas');
+            modal.classList.toggle('hidden');
+        }
+
+        async function carregarDadosAPI() {
+            try {
+                const response = await fetch("/api/trades", {
+                    credentials: "same-origin"
+                });
+                if (!response.ok) throw new Error("Erro ao comunicar com a API do FastAPI.");
+                
+                const trades = await response.json();
+                cacheTradesBrutos = trades;
+                
+                renderizarPainel(trades);
+            } catch (err) {
+                console.error("Erro ao carregar trades para análise:", err);
+                document.getElementById('tabelaCorpo').innerHTML = `<tr><td colspan="10" class="text-center py-12 text-red-400">Erro ao conectar com o servidor FastAPI. Verifique se o serviço está ativo.</td></tr>`;
+            }
+        }
+
+        function renderizarPainel(trades) {
+            const thHead = document.getElementById('cabecalhoTabela');
+            const corpo = document.getElementById('tabelaCorpo');
+            const divChecks = document.getElementById('listaCheckboxes');
+
+            if (!trades || trades.length === 0) {
+                thHead.innerHTML = `<th class="p-2.5">#</th><th class="p-2.5">Nenhum registro encontrado</th>`;
+                corpo.innerHTML = `<tr><td colspan="2" class="text-center py-12 text-gray-500">Nenhum trade gravado no banco de dados.</td></tr>`;
+                divChecks.innerHTML = `<span class="text-gray-500">Sem colunas disponíveis.</span>`;
+                document.getElementById('statusRegistros').textContent = `0 registros carregados`;
+                return;
+            }
+
+            let ocultas = JSON.parse(localStorage.getItem(HIDDEN_COLS_KEY) || '[]');
+            let cabecalho = CABECALHO_PADRAO;
+
+            document.getElementById('statusRegistros').textContent = `${trades.length} registros sincronizados (${cabecalho.length - ocultas.length} de ${cabecalho.length} colunas visíveis)`;
+
+            divChecks.innerHTML = cabecalho.map((col, idx) => {
+                const isChecked = !ocultas.includes(idx);
+                return `
+                    <label class="flex items-center gap-2 text-gray-300 hover:text-white cursor-pointer select-none">
+                        <input type="checkbox" value="${idx}" ${isChecked ? 'checked' : ''} onchange="atualizarColunasOcultas(this)" class="rounded bg-gray-800 border-gray-700 text-blue-600 focus:ring-0">
+                        <span class="truncate">${col}</span>
+                    </label>
+                `;
+            }).join('');
+
+            let indicesVisiveis = [];
+            let thHtml = `<th class="p-2.5 bg-gray-950 sticky left-0 z-30 border-r border-gray-800">#</th>`;
+            
+            cabecalho.forEach((col, idx) => {
+                if (!ocultas.includes(idx)) {
+                    indicesVisiveis.push(idx);
+                    thHtml += `<th class="p-2.5 border-r border-gray-800/60">${col}</th>`;
+                }
+            });
+            thHead.innerHTML = thHtml;
+
+            // Mapeamento das propriedades do objeto Trade da API para as colunas
+            const chavesMapeamento = [
+                "conta", "ativo", "abertura", "fechamento", "tempoOperacao", "lado", 
+                "qtdCompra", "qtdVenda", "precoCompra", "precoVenda", "resIntervaloBruto", 
+                "resIntervaloPercentual", "custo", "resOperacao", "tet", "setup", "complementoSetup", 
+                "timeframe", "tipoEntrada", "tipoSaida", "checklist", "falhas", 
+                "mmTend", "vwapTend", "resSupProx", "momento", "precoLimite", 
+                "emocional", "nota", "printUrl"
+            ];
+
+            corpo.innerHTML = trades.map((t, rowIdx) => {
+                let htmlCols = `<td class="p-2.5 bg-gray-900 sticky left-0 z-10 text-gray-500 border-r border-gray-800">#${rowIdx + 1}</td>`;
+                
+                indicesVisiveis.forEach(j => {
+                    const propKey = chavesMapeamento[j];
+                    const val = (t[propKey] !== undefined && t[propKey] !== null && t[propKey] !== '') ? t[propKey] : '-';
+                    let corDestaque = 'text-gray-300';
+                    const cabLower = cabecalho[j].toLowerCase();
+                    
+                    if (cabLower.includes('conta')) {
+                        corDestaque = 'text-amber-400 font-bold';
+                    } else if (cabLower.includes('res.') || cabLower.includes('resultado') || cabLower.includes('lucro')) {
+                        if (val.startsWith('-')) corDestaque = 'text-red-400 font-bold';
+                        else if (val !== '-' && val !== '0,00') {
+                            corDestaque = 'text-emerald-400 font-bold';
+                        }
+                    } else if (cabLower.includes('lado')) {
+                        corDestaque = val.toUpperCase().includes('V') ? 'text-red-400 font-bold text-center' : 'text-emerald-400 font-bold text-center';
+                    } else if (cabLower.includes('print')) {
+                        return htmlCols += `<td class="p-2.5 border-r border-gray-900 text-center">${val !== '-' ? `<a href="${val}" target="_blank" class="text-blue-400 hover:underline"><i class="fa-solid fa-eye"></i> Ver</a>` : '-'}</td>`;
+                    }
+
+                    htmlCols += `<td class="p-2.5 border-r border-gray-900 ${corDestaque}">${val}</td>`;
+                });
+                return `<tr class="border-b border-gray-900 hover:bg-gray-900/50">${htmlCols}</tr>`;
+            }).join('');
+        }
+
+        function atualizarColunasOcultas(checkbox) {
+            const idx = parseInt(checkbox.value);
+            let ocultas = JSON.parse(localStorage.getItem(HIDDEN_COLS_KEY) || '[]');
+
+            if (checkbox.checked) {
+                ocultas = ocultas.filter(i => i !== idx);
+            } else {
+                if (!ocultas.includes(idx)) ocultas.push(idx);
+            }
+
+            localStorage.setItem(HIDDEN_COLS_KEY, JSON.stringify(ocultas));
+            renderizarPainel(cacheTradesBrutos);
+        }
+    </script>
+</body>
+</html>

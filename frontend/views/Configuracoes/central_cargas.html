@@ -1,0 +1,644 @@
+<!-- ========================================================================================= -->
+<!-- ARQUIVO: frontend/views/Configuracoes/central_cargas.html                                 -->
+<!-- CONTEXTO: Central de Cargas e Relatórios - Suporte à Cesta de Ativos no CSV Seguro        -->
+<!-- ========================================================================================= -->
+<div class="space-y-6 max-w-full mx-auto pt-6 px-4">
+    <!-- PAINEL DE CONTROLE E INDICADORES -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-lg">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+                <h1 class="text-base font-bold text-white tracking-wide">Central de Cargas e Relatórios <span class="text-amber-400 font-mono text-xs">(DISCO / SQLITE)</span></h1>
+                <p class="text-xs text-gray-400">Gerenciamento, pré-visualização e atualização segura integrada ao <code class="text-amber-400 font-mono">FastAPI</code></p>
+            </div>
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <button onclick="carregarDadosBaseCentral()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-3 py-2 rounded-lg border border-gray-700 transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate"></i> Atualizar Dados
+                </button>
+            </div>
+        </div>
+
+        <!-- GRID DE INDICADORES -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+            <div class="bg-gray-950 border border-gray-800 rounded-lg p-4 flex justify-between items-center">
+                <span class="text-xs text-gray-400">Total na Base:</span>
+                <span id="contadorOpsBase" class="text-sm font-bold text-emerald-400 font-mono">0</span>
+            </div>
+            <div class="bg-gray-950 border border-gray-800 rounded-lg p-4 flex justify-between items-center">
+                <span class="text-xs text-gray-400">Qtd. Filtrada:</span>
+                <span id="contadorOpsFiltradas" class="text-sm font-bold text-amber-400 font-mono">0</span>
+            </div>
+            <div class="bg-gray-950 border border-gray-800 rounded-lg p-4 flex justify-between items-center">
+                <span class="text-xs text-gray-400">Status da Base:</span>
+                <span id="statusBase" class="text-xs font-bold text-blue-400 font-mono">Carregando...</span>
+            </div>
+            <div class="bg-gray-950 border border-gray-800 rounded-lg p-4 flex justify-between items-center">
+                <span class="text-xs text-gray-400">Armazenamento:</span>
+                <span class="text-xs font-bold text-emerald-400 font-mono">SQLite (Disco)</span>
+            </div>
+            <!-- FILTRO POR CONTA -->
+            <div class="bg-gray-950 border border-gray-800 rounded-lg p-3 flex flex-col justify-center">
+                <label for="filtroConta" class="text-[10px] uppercase font-semibold text-gray-400 mb-1">Filtrar por Conta:</label>
+                <select id="filtroConta" onchange="filtrarTabelaPorContaCentral()" class="bg-gray-900 border border-gray-700 text-white text-xs rounded px-2 py-1 focus:outline-none focus:border-amber-400">
+                    <option value="">Selecione uma conta...</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAINEL DE PRÉ-VISUALIZAÇÃO / TABELA ESPELHO -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-lg">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-table text-emerald-400"></i> Pré-visualização e Auditoria por Conta
+            </h2>
+            <button onclick="exportarCsvSeguroCentral()" id="btnExportarCsv" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-2 shadow">
+                <i class="fa-solid fa-file-arrow-down"></i> Baixar CSV Seguro
+            </button>
+        </div>
+        <div class="overflow-auto border border-gray-800 rounded-lg max-h-[280px]">
+            <table class="w-full text-left text-xs text-gray-300 whitespace-nowrap">
+                <thead class="bg-gray-950 text-gray-400 font-semibold uppercase text-[10px] sticky top-0 border-b border-gray-800 z-10">
+                    <tr>
+                        <th class="p-3">ID</th>
+                        <th class="p-3">Conta</th>
+                        <th class="p-3">Plataforma</th>
+                        <th class="p-3">Ativo</th>
+                        <th class="p-3">Abertura</th>
+                        <th class="p-3">Fechamento</th>
+                        <th class="p-3">Tempo</th>
+                        <th class="p-3">Qtd/Lado</th>
+                        <th class="p-3">Compra</th>
+                        <th class="p-3">Venda</th>
+                        <th class="p-3">Res. Bruto</th>
+                        <th class="p-3">Res. (%)</th>
+                        <th class="p-3">Custo</th>
+                        <th class="p-3">Res. Líq.</th>
+                        <th class="p-3">TET</th>
+                        <th class="p-3">Setup</th>
+                        <th class="p-3">Compl. Setup</th>
+                        <th class="p-3">Timeframe</th>
+                        <th class="p-3">Tipo Entrada</th>
+                        <th class="p-3">Tipo Saída</th>
+                        <th class="p-3">Checklist</th>
+                        <th class="p-3">Falhas</th>
+                        <th class="p-3">MM Tend.</th>
+                        <th class="p-3">VWAP Tend.</th>
+                        <th class="p-3">Res/Sup Próx.</th>
+                        <th class="p-3">Momento</th>
+                        <th class="p-3">Preço Limite</th>
+                        <th class="p-3">Nota</th>
+                        <th class="p-3">Emocional</th>
+                        <th class="p-3">Cesta Ativos</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaPreviewBody" class="divide-y divide-gray-800 bg-gray-900/50">
+                    <tr>
+                        <td colspan="30" class="p-6 text-center text-gray-500 italic">Selecione uma conta no filtro acima para visualizar os dados.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PAINEL DE IMPORTAÇÃO -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-lg">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+            <div>
+                <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-file-arrow-up text-amber-400"></i> Importação e Sincronização por ID
+                </h2>
+                <p class="text-xs text-gray-400">Selecione um arquivo CSV exportado para atualizar os dados analíticos mantendo ID até TET inalterados.</p>
+            </div>
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <input type="file" id="inputArquivoCsv" accept=".csv" onchange="processarCsvParaPreviewCentral(event)" class="hidden">
+                <button onclick="document.getElementById('inputArquivoCsv').click()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2 shadow">
+                    <i class="fa-solid fa-folder-open"></i> Selecionar Arquivo CSV
+                </button>
+                <button onclick="salvarCsvNaBaseSeguraCentral()" id="btnSalvarBase" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2 shadow">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Atualizar Base (Blindado)
+                </button>
+            </div>
+        </div>
+
+        <div id="statusImportacao" class="text-xs text-amber-300 font-mono mb-3 hidden"></div>
+
+        <div class="overflow-auto border border-gray-800 rounded-lg max-h-[280px]">
+            <table class="w-full text-left text-xs text-gray-300 whitespace-nowrap">
+                <thead class="bg-gray-950 text-gray-400 font-semibold uppercase text-[10px] sticky top-0 border-b border-gray-800 z-10">
+                    <tr>
+                        <th class="p-3">ID</th>
+                        <th class="p-3">Conta</th>
+                        <th class="p-3">Plataforma</th>
+                        <th class="p-3">Ativo</th>
+                        <th class="p-3">Abertura</th>
+                        <th class="p-3">Fechamento</th>
+                        <th class="p-3">Tempo</th>
+                        <th class="p-3">Qtd/Lado</th>
+                        <th class="p-3">Compra</th>
+                        <th class="p-3">Venda</th>
+                        <th class="p-3">Res. Bruto</th>
+                        <th class="p-3">Res. (%)</th>
+                        <th class="p-3">Custo</th>
+                        <th class="p-3">Res. Líq.</th>
+                        <th class="p-3">TET</th>
+                        <th class="p-3">Setup</th>
+                        <th class="p-3">Compl. Setup</th>
+                        <th class="p-3">Timeframe</th>
+                        <th class="p-3">Tipo Entrada</th>
+                        <th class="p-3">Tipo Saída</th>
+                        <th class="p-3">Checklist</th>
+                        <th class="p-3">Falhas</th>
+                        <th class="p-3">MM Tend.</th>
+                        <th class="p-3">VWAP Tend.</th>
+                        <th class="p-3">Res/Sup Próx.</th>
+                        <th class="p-3">Momento</th>
+                        <th class="p-3">Preço Limite</th>
+                        <th class="p-3">Nota</th>
+                        <th class="p-3">Emocional</th>
+                        <th class="p-3">Cesta Ativos</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaImportacaoBody" class="divide-y divide-gray-800 bg-gray-900/50">
+                    <tr>
+                        <td colspan="30" class="p-6 text-center text-gray-500 italic">Nenhum arquivo CSV carregado para pré-visualização.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const STORAGE_KEY_CONTAS_CENTRAL = 'cockpit_contas_completo';
+    window._todosTradesCacheCentral = [];
+
+    function converterParaNumeroCentral(valorStr) {
+        if (!valorStr || typeof valorStr !== 'string') return 0;
+        let limpo = valorStr.trim().replace(/[R$\s]/g, '');
+        if (limpo.includes(',') && limpo.includes('.')) {
+            limpo = limpo.replace(/\./g, '').replace(',', '.');
+        } else if (limpo.includes(',')) {
+            limpo = limpo.replace(',', '.');
+        }
+        const num = parseFloat(limpo);
+        return isNaN(num) ? 0 : num;
+    }
+
+    function converterDataParaTimestamp(dataStr) {
+        if (!dataStr || typeof dataStr !== 'string') return 0;
+        const limpo = dataStr.trim();
+        const partes = limpo.split(' ');
+        const dataPartes = partes[0].split('/');
+        if (dataPartes.length < 3) return 0;
+        const isoStr = `${dataPartes[2]}-${dataPartes[1]}-${dataPartes[0]}T${partes[1] || '00:00:00'}`;
+        const timestamp = new Date(isoStr).getTime();
+        return isNaN(timestamp) ? 0 : timestamp;
+    }
+
+    function ordenarTradesDecrescente(trades) {
+        return trades.sort((a, b) => converterDataParaTimestamp(b.abertura) - converterDataParaTimestamp(a.abertura));
+    }
+
+    function obterTaxasContaCentral(numConta, ativo) {
+        try {
+            const contas = JSON.parse(localStorage.getItem(STORAGE_KEY_CONTAS_CENTRAL) || '[]');
+            const contaEncontrada = contas.find(c => c.id.toString().trim() === numConta.toString().trim());
+            if (!contaEncontrada) return 1.0;
+            const ativoUpper = (ativo || '').toUpperCase();
+            if (ativoUpper.includes('WIN')) return converterParaNumeroCentral(contaEncontrada.taxaWin);
+            if (ativoUpper.includes('WDO')) return converterParaNumeroCentral(contaEncontrada.taxaDol);
+        } catch (e) {}
+        return 1.0;
+    }
+
+    function extrairQuantidadeDoTrade(t) {
+        const campoQtdLado = t.qtdLado || t.qtd_lado || t['QTD/LADO'] || '';
+        if (campoQtdLado && typeof campoQtdLado === 'string' && campoQtdLado !== '-') {
+            const match = campoQtdLado.match(/(\d+)/);
+            if (match) return parseInt(match[1]) || 1;
+        }
+        const qCompra = t.qtdCompra || t['QTD COMPRA'] || '';
+        if (qCompra && qCompra !== '-' && String(qCompra).trim() !== '') {
+            const num = parseInt(qCompra);
+            if (!isNaN(num) && num > 0) return num;
+        }
+        const qVenda = t.qtdVenda || t['QTD VENDA'] || '';
+        if (qVenda && qVenda !== '-' && String(qVenda).trim() !== '') {
+            const num = parseInt(qVenda);
+            if (!isNaN(num) && num > 0) return num;
+        }
+        return parseInt(t.qtd || t.quantidade || '1') || 1;
+    }
+
+    function calcularCustoTradeCentral(t) {
+        const qtdNumerica = extrairQuantidadeDoTrade(t);
+        const taxaUnit = obterTaxasContaCentral(t.conta, t.ativo);
+        return qtdNumerica * taxaUnit;
+    }
+
+    window.carregarDadosBaseCentral = async function() {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api/trades");
+            if (!response.ok) throw new Error("Erro ao carregar trades do servidor.");
+            const trades = await response.json();
+            
+            window._todosTradesCacheCentral = ordenarTradesDecrescente(trades);
+            const elContador = document.getElementById('contadorOpsBase');
+            if (elContador) elContador.textContent = window._todosTradesCacheCentral.length;
+
+            const selectConta = document.getElementById('filtroConta');
+            if (!selectConta) return;
+            
+            const contaSelecionadaAtual = selectConta.value;
+            selectConta.innerHTML = '<option value="">Selecione uma conta...</option>';
+
+            const elStatus = document.getElementById('statusBase');
+            const elFiltradas = document.getElementById('contadorOpsFiltradas');
+            const elBtnExportar = document.getElementById('btnExportarCsv');
+
+            if (window._todosTradesCacheCentral.length === 0) {
+                if (elStatus) elStatus.textContent = "Vazio";
+                if (elFiltradas) elFiltradas.textContent = "0";
+                if (elBtnExportar) elBtnExportar.classList.add('hidden');
+                return;
+            }
+
+            if (elStatus) elStatus.textContent = "Ativo (" + window._todosTradesCacheCentral.length + ")";
+            const contasUnicas = [...new Set(window._todosTradesCacheCentral.map(op => String(op.conta || '103050571')))];
+            
+            contasUnicas.forEach(conta => {
+                const opt = document.createElement('option');
+                opt.value = conta;
+                opt.textContent = conta;
+                selectConta.appendChild(opt);
+            });
+
+            if (contaSelecionadaAtual && contasUnicas.includes(contaSelecionadaAtual)) {
+                selectConta.value = contaSelecionadaAtual;
+                window.filtrarTabelaPorContaCentral();
+            }
+        } catch (e) {
+            console.error("Erro ao carregar dados base do servidor:", e);
+            const elStatus = document.getElementById('statusBase');
+            if (elStatus) elStatus.textContent = "Erro API";
+        }
+    };
+
+    window.filtrarTabelaPorContaCentral = function() {
+        const selectConta = document.getElementById('filtroConta');
+        const tbody = document.getElementById('tabelaPreviewBody');
+        const contadorFiltradas = document.getElementById('contadorOpsFiltradas');
+        const btnExportar = document.getElementById('btnExportarCsv');
+        
+        if (!selectConta || !tbody) return;
+        const contaFiltro = selectConta.value;
+        tbody.innerHTML = '';
+
+        if (!contaFiltro) {
+            if (contadorFiltradas) contadorFiltradas.textContent = "0";
+            window._tradesFiltradosCacheCentral = [];
+            if (btnExportar) btnExportar.classList.add('hidden');
+            tbody.innerHTML = `<tr><td colspan="30" class="p-6 text-center text-gray-500 italic">Selecione uma conta no filtro acima para visualizar os dados.</td></tr>`;
+            return;
+        }
+
+        window._tradesFiltradosCacheCentral = (window._todosTradesCacheCentral || [])
+            .map((op, originalIndex) => ({ ...op, _globalIndex: originalIndex }))
+            .filter(op => String(op.conta || '103050571') === contaFiltro);
+
+        if (contadorFiltradas) contadorFiltradas.textContent = window._tradesFiltradosCacheCentral.length;
+
+        if (window._tradesFiltradosCacheCentral.length === 0) {
+            if (btnExportar) btnExportar.classList.add('hidden');
+            tbody.innerHTML = `<tr><td colspan="30" class="p-6 text-center text-amber-400/80 italic">Nenhum registro para esta conta.</td></tr>`;
+            return;
+        }
+
+        if (btnExportar) btnExportar.classList.remove('hidden');
+        preencherTabelaHtmlCentral(window._tradesFiltradosCacheCentral, tbody);
+    };
+
+    window.exportarCsvSeguroCentral = function() {
+        if (!window._tradesFiltradosCacheCentral || window._tradesFiltradosCacheCentral.length === 0) return;
+
+        const cabecalho = [
+            "ID", "Conta", "Plataforma", "Ativo", "Abertura", "Fechamento", "Tempo", 
+            "Qtd/Lado", "Compra", "Venda", "Res. Bruto", "Res. (%)", "Custo", "Res. Líq.", 
+            "TET", "Setup", "Compl. Setup", "Timeframe", "Tipo Entrada", "Tipo Saída", 
+            "Checklist", "Falhas", "MM Tend.", "VWAP Tend.", "Res/Sup Próx.", "Momento", 
+            "Preço Limite", "Nota", "Emocional", "Usa Cesta", "Ativo 1", "Estado 1", 
+            "Ativo 2", "Estado 2", "Ativo 3", "Estado 3", "Ativo 4", "Estado 4"
+        ];
+
+        let csvRows = [cabecalho.map(val => `"${val}"`).join(';')];
+
+        window._tradesFiltradosCacheCentral.forEach((op, index) => {
+            const idSequencial = `#${index + 1}`;
+            const isCompra = (op.lado || '').toUpperCase().includes('C') || (op.lado || '').toUpperCase().includes('COMPRA');
+            const qtdVal = extrairQuantidadeDoTrade(op);
+            const ladoVal = isCompra ? 'C' : 'V';
+            const tempoVal = op.tempoOperacao || op.tempo || op.duracao || '00:00';
+            const brutoValStr = op.resIntervaloBruto || op.resBruto || 'R$ 0,00';
+            
+            const valBruto = converterParaNumeroCentral(brutoValStr);
+            const custoVal = calcularCustoTradeCentral(op);
+            const liqVal = valBruto - custoVal;
+
+            const custoStr = `R$ ${custoVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            const liqStr = `R$ ${liqVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+            const linha = [
+                idSequencial, op.conta || '103050571', op.plataforma || 'Profit', op.ativo || 'WIN',
+                op.abertura || '', op.fechamento || '', tempoVal, `${qtdVal} ${ladoVal}`,
+                op.precoCompra || '', op.precoVenda || '', brutoValStr, op.resIntervaloPercentual || op.resPercentual || '',
+                custoStr, liqStr, op.tet || '',
+                op.setup || '', op.complementoSetup || '', op.timeframe || '', op.tipoEntrada || '',
+                op.tipoSaida || '', op.checklist || '', op.falhas || '', op.mmTend || '',
+                op.vwapTend || '', op.resSupProx || '', op.momento || '', op.precoLimite || '',
+                op.nota || '', op.emocional || '', op.usaCesta || 'false', 
+                op.ativo1 || '', op.estado1 || '', op.ativo2 || '', op.estado2 || '', 
+                op.ativo3 || '', op.estado3 || '', op.ativo4 || '', op.estado4 || ''
+            ];
+            csvRows.push(linha.map(val => `"${String(val !== undefined && val !== null ? val : '').replace(/"/g, '""')}"`).join(';'));
+        });
+
+        const blob = new Blob(["\ufeff" + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const selectConta = document.getElementById('filtroConta');
+        const contaVal = selectConta ? selectConta.value : 'geral';
+        a.href = url;
+        a.download = `Relatorio_Conta_${contaVal}_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    window.processarCsvParaPreviewCentral = function(event) {
+        const arquivo = event.target.files[0];
+        if (!arquivo) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const conteudo = e.target.result;
+                const linhas = conteudo.split(/\r\n|\n/).filter(l => l.trim() !== '');
+                if (linhas.length < 2) return;
+
+                let indexCabecalho = -1;
+                for (let i = 0; i < linhas.length; i++) {
+                    const lUpper = linhas[i].toUpperCase();
+                    if (lUpper.includes('ATIVO') && lUpper.includes('ABERTURA')) {
+                        indexCabecalho = i;
+                        break;
+                    }
+                }
+
+                if (indexCabecalho === -1) indexCabecalho = 0;
+
+                const separador = linhas[indexCabecalho].includes(';') ? ';' : ',';
+                const cabecalho = linhas[indexCabecalho].split(separador).map(h => h.replace(/^"|"$/g, '').trim().toUpperCase());
+                const tradesExtraidos = [];
+
+                let contadorLinha = 0;
+                for (let i = indexCabecalho + 1; i < linhas.length; i++) {
+                    const linha = linhas[i];
+                    if (!linha.trim() || linha.startsWith('Conta:') || linha.startsWith('Titular:')) continue;
+
+                    let colunas = [];
+                    let dentroAspas = false;
+                    let colunaAtual = '';
+                    
+                    for (let j = 0; j < linha.length; j++) {
+                        const char = linha[j];
+                        if (char === '"') dentroAspas = !dentroAspas;
+                        else if ((char === ',' || char === ';') && !dentroAspas) {
+                            colunas.push(colunaAtual.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+                            colunaAtual = '';
+                        } else colunaAtual += char;
+                    }
+                    colunas.push(colunaAtual.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+
+                    let objTradeCsv = {};
+                    cabecalho.forEach((cab, idx) => {
+                        objTradeCsv[cab] = colunas[idx] || '';
+                    });
+
+                    if (colunas.length >= 4) {
+                        const contaVal = objTradeCsv['SUBCONTA'] || objTradeCsv['CONTA'] || colunas[1] || '103050571';
+                        const ativoVal = objTradeCsv['ATIVO'] || colunas[3] || 'WIN';
+                        const aberturaVal = objTradeCsv['ABERTURA'] || colunas[4] || '';
+
+                        if (!aberturaVal || aberturaVal === '-') continue;
+
+                        contadorLinha++;
+                        const idSequencial = `#${contadorLinha}`;
+                        const idUnicoBusca = `${contaVal.replace(/[^a-zA-Z0-9]/g, '')}_${ativoVal}_${aberturaVal.replace(/[\/\s:]/g, '')}`;
+
+                        const qComp = objTradeCsv['QTD COMPRA'] || '';
+                        const qVend = objTradeCsv['QTD VENDA'] || '';
+                        const qLadoImp = objTradeCsv['QTD/LADO'] || objTradeCsv['LADO'] || colunas[7] || '';
+
+                        tradesExtraidos.push({
+                            _globalIndex: contadorLinha - 1,
+                            id: idUnicoBusca,
+                            idExibicao: idSequencial,
+                            conta: contaVal.replace(/[^0-9]/g, '') || '103050571',
+                            plataforma: 'Profit',
+                            ativo: ativoVal,
+                            abertura: aberturaVal,
+                            fechamento: objTradeCsv['FECHAMENTO'] || colunas[5] || '',
+                            tempoOperacao: objTradeCsv['TEMPO OPERAÇÃO'] || objTradeCsv['TEMPO'] || colunas[6] || '00:00',
+                            lado: objTradeCsv['LADO'] || (qComp && qComp !== '-' ? 'C' : 'V'),
+                            qtdCompra: qComp,
+                            qtdVenda: qVend,
+                            qtdLado: qLadoImp,
+                            precoCompra: objTradeCsv['PREÇO COMPRA'] || colunas[8] || '',
+                            precoVenda: objTradeCsv['PREÇO VENDA'] || colunas[9] || '',
+                            resIntervaloBruto: objTradeCsv['RES. INTERVALO BRUTO'] || objTradeCsv['RES. BRUTO'] || colunas[10] || 'R$ 0,00',
+                            resIntervaloPercentual: objTradeCsv['RES. INTERVALO (%)'] || objTradeCsv['RES. (%)'] || colunas[11] || '',
+                            custo: objTradeCsv['CUSTO'] || colunas[12] || 'R$ 0,00',
+                            resOperacao: objTradeCsv['RES. OPERAÇÃO'] || objTradeCsv['RES. LÍQ.'] || colunas[13] || '',
+                            tet: objTradeCsv['TET'] || colunas[14] || '',
+                            setup: objTradeCsv['SETUP'] || colunas[15] || '',
+                            complementoSetup: objTradeCsv['COMPL. SETUP'] || colunas[16] || '',
+                            timeframe: objTradeCsv['TIMEFRAME'] || colunas[17] || '',
+                            tipoEntrada: objTradeCsv['TIPO ENTRADA'] || colunas[18] || '',
+                            tipoSaida: objTradeCsv['TIPO SAÍDA'] || colunas[19] || '',
+                            checklist: objTradeCsv['CHECKLIST'] || colunas[20] || '',
+                            falhas: objTradeCsv['FALHAS'] || colunas[21] || '',
+                            mmTend: objTradeCsv['MM TEND.'] || colunas[22] || '',
+                            vwapTend: objTradeCsv['VWAP TEND.'] || colunas[23] || '',
+                            resSupProx: objTradeCsv['RES/SUP PRÓX.'] || colunas[24] || '',
+                            momento: objTradeCsv['MOMENTO'] ? objTradeCsv['MOMENTO'].toUpperCase() : (colunas[25] || ''),
+                            precoLimite: objTradeCsv['PREÇO LIMITE'] || colunas[26] || '',
+                            nota: objTradeCsv['NOTA'] || colunas[27] || '',
+                            emocional: objTradeCsv['EMOCIONAL'] || colunas[28] || '',
+                            usaCesta: objTradeCsv['USA CESTA'] || objTradeCsv['USA_CESTA'] || 'false',
+                            ativo1: objTradeCsv['ATIVO 1'] || objTradeCsv['ATIVO1'] || '',
+                            estado1: objTradeCsv['ESTADO 1'] || objTradeCsv['ESTADO1'] || '',
+                            ativo2: objTradeCsv['ATIVO 2'] || objTradeCsv['ATIVO2'] || '',
+                            estado2: objTradeCsv['ESTADO 2'] || objTradeCsv['ESTADO2'] || '',
+                            ativo3: objTradeCsv['ATIVO 3'] || objTradeCsv['ATIVO3'] || '',
+                            estado3: objTradeCsv['ESTADO 3'] || objTradeCsv['ESTADO3'] || '',
+                            ativo4: objTradeCsv['ATIVO 4'] || objTradeCsv['ATIVO4'] || '',
+                            estado4: objTradeCsv['ESTADO 4'] || objTradeCsv['ESTADO4'] || ''
+                        });
+                    }
+                }
+
+                window._tradesImportadosCacheCentral = ordenarTradesDecrescente(tradesExtraidos);
+                const tbodyImp = document.getElementById('tabelaImportacaoBody');
+                if (tbodyImp) preencherTabelaHtmlCentral(window._tradesImportadosCacheCentral, tbodyImp);
+
+                const statusDiv = document.getElementById('statusImportacao');
+                const btnSalvar = document.getElementById('btnSalvarBase');
+                if (statusDiv) {
+                    statusDiv.textContent = `${window._tradesImportadosCacheCentral.length} registro(s) prontos para sincronização seletiva com o servidor.`;
+                    statusDiv.classList.remove('hidden');
+                }
+                if (btnSalvar) btnSalvar.classList.remove('hidden');
+            } catch (err) {
+                console.error("Erro ao processar CSV:", err);
+            }
+        };
+        reader.readAsText(arquivo, 'UTF-8');
+    };
+
+    window.salvarCsvNaBaseSeguraCentral = async function() {
+        if (!window._tradesImportadosCacheCentral || window._tradesImportadosCacheCentral.length === 0) return;
+
+        try {
+            let baseAtual = window._todosTradesCacheCentral || [];
+            let atualizadosCount = 0;
+
+            window._tradesImportadosCacheCentral.forEach(itemCsv => {
+                const idx = itemCsv._globalIndex;
+                if (idx !== undefined && baseAtual[idx]) {
+                    baseAtual[idx] = {
+                        ...baseAtual[idx],
+                        setup: itemCsv.setup,
+                        complementoSetup: itemCsv.complementoSetup,
+                        timeframe: itemCsv.timeframe,
+                        tipoEntrada: itemCsv.tipoEntrada,
+                        tipoSaida: itemCsv.tipoSaida,
+                        checklist: itemCsv.checklist,
+                        falhas: itemCsv.falhas,
+                        mmTend: itemCsv.mmTend,
+                        vwapTend: itemCsv.vwapTend,
+                        resSupProx: itemCsv.resSupProx,
+                        momento: itemCsv.momento,
+                        precoLimite: itemCsv.precoLimite,
+                        nota: itemCsv.nota,
+                        emocional: itemCsv.emocional,
+                        usaCesta: itemCsv.usaCesta,
+                        ativo1: itemCsv.ativo1,
+                        estado1: itemCsv.estado1,
+                        ativo2: itemCsv.ativo2,
+                        estado2: itemCsv.estado2,
+                        ativo3: itemCsv.ativo3,
+                        estado3: itemCsv.estado3,
+                        ativo4: itemCsv.ativo4,
+                        estado4: itemCsv.estado4
+                    };
+                    atualizadosCount++;
+                }
+            });
+
+            const response = await fetch("http://127.0.0.1:8000/api/trades/lote", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(baseAtual)
+            });
+
+            if (!response.ok) throw new Error("Erro ao sincronizar com o servidor.");
+
+            alert(`Sincronização Segura com o Servidor Concluída! ${atualizadosCount} registro(s) atualizados com sucesso.`);
+            window.carregarDadosBaseCentral();
+            
+            const tbodyImp = document.getElementById('tabelaImportacaoBody');
+            if (tbodyImp) tbodyImp.innerHTML = `<tr><td colspan="30" class="p-6 text-center text-emerald-400 italic">Sincronização realizada com sucesso!</td></tr>`;
+            
+            const statusDiv = document.getElementById('statusImportacao');
+            const btnSalvar = document.getElementById('btnSalvarBase');
+            const inputCsv = document.getElementById('inputArquivoCsv');
+            if (statusDiv) statusDiv.classList.add('hidden');
+            if (btnSalvar) btnSalvar.classList.add('hidden');
+            if (inputCsv) inputCsv.value = '';
+            window._tradesImportadosCacheCentral = [];
+        } catch (e) {
+            console.error("Erro ao salvar base no servidor:", e);
+            alert("Erro ao comunicar com o FastAPI.");
+        }
+    };
+
+    function preencherTabelaHtmlCentral(listaTrades, tbodyElement) {
+        tbodyElement.innerHTML = '';
+        listaTrades.forEach((op, index) => {
+            const idSeq = `#${index + 1}`;
+            const isCompra = (op.lado || '').toUpperCase().includes('C') || (op.lado || '').toUpperCase().includes('COMPRA');
+            const qtdVal = extrairQuantidadeDoTrade(op);
+            const ladoVal = isCompra ? 'C' : 'V';
+            const tempoVal = op.tempoOperacao || op.tempo || op.duracao || '00:00';
+
+            const badgeClass = isCompra 
+                ? "bg-emerald-950 text-emerald-400 border border-emerald-900 px-2 py-0.5 rounded font-bold text-[10px]" 
+                : "bg-red-950 text-red-400 border border-red-900 px-2 py-0.5 rounded font-bold text-[10px]";
+
+            const valBruto = converterParaNumeroCentral(op.resIntervaloBruto || op.resBruto);
+            const textoBruto = `R$ ${valBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            const colorResBruto = valBruto >= 0 ? "text-emerald-400 font-mono font-bold" : "text-red-400 font-mono font-bold";
+
+            const custoVal = calcularCustoTradeCentral(op);
+            const textoCusto = `R$ ${custoVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            
+            const valLiq = valBruto - custoVal;
+            const textoLiq = `R$ ${valLiq.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            const colorResLiq = valLiq >= 0 ? "text-emerald-400 font-mono font-bold" : "text-red-400 font-mono font-bold";
+
+            const usaCestaFlag = (op.usaCesta === 'true' || op.usaCesta === true) ? 'Sim' : 'Não';
+            const resumoCesta = usaCestaFlag === 'Sim' ? `${op.ativo1 || '-'}(${op.estado1 || '-'}) / ${op.ativo2 || '-'}(${op.estado2 || '-'})` : 'Inativo';
+
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-gray-800/50 transition";
+            tr.innerHTML = `
+                <td class="p-3 font-mono text-amber-400 font-bold">${idSeq}</td>
+                <td class="p-3">${op.conta || '103050571'}</td>
+                <td class="p-3">${op.plataforma || 'Profit'}</td>
+                <td class="p-3 font-semibold text-white">${op.ativo || 'WIN'}</td>
+                <td class="p-3">${op.abertura || ''}</td>
+                <td class="p-3">${op.fechamento || ''}</td>
+                <td class="p-3 font-mono text-gray-300">${tempoVal}</td>
+                <td class="p-3 text-center whitespace-nowrap"><span class="${badgeClass}">${qtdVal} ${ladoVal}</span></td>
+                <td class="p-3 font-mono">${op.precoCompra || ''}</td>
+                <td class="p-3 font-mono">${op.precoVenda || ''}</td>
+                <td class="p-3 ${colorResBruto}">${textoBruto}</td>
+                <td class="p-3 font-mono">${op.resIntervaloPercentual || op.resPercentual || ''}</td>
+                <td class="p-3 font-mono text-red-400">${textoCusto}</td>
+                <td class="p-3 ${colorResLiq}">${textoLiq}</td>
+                <td class="p-3">${op.tet || ''}</td>
+                <td class="p-3 font-semibold text-white">${op.setup || ''}</td>
+                <td class="p-3">${op.complementoSetup || ''}</td>
+                <td class="p-3">${op.timeframe || ''}</td>
+                <td class="p-3">${op.tipoEntrada || ''}</td>
+                <td class="p-3">${op.tipoSaida || ''}</td>
+                <td class="p-3">${op.checklist || ''}</td>
+                <td class="p-3">${op.falhas || ''}</td>
+                <td class="p-3">${op.mmTend || ''}</td>
+                <td class="p-3">${op.vwapTend || ''}</td>
+                <td class="p-3">${op.resSupProx || ''}</td>
+                <td class="p-3">${op.momento || ''}</td>
+                <td class="p-3">${op.precoLimite || ''}</td>
+                <td class="p-3">${op.nota || ''}</td>
+                <td class="p-3 text-amber-300">${op.emocional || ''}</td>
+                <td class="p-3 font-mono text-xs text-amber-400">${resumoCesta}</td>
+            `;
+            tbodyElement.appendChild(tr);
+        });
+    }
+
+    setTimeout(window.carregarDadosBaseCentral, 50);
+})();
+</script>
