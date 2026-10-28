@@ -8,12 +8,11 @@ import os
 import sys
 import sqlite3
 import secrets
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, status
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.requests import Request
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -57,7 +56,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Caminho absoluto para a raiz do projeto (Dash_API)
+# Caminho absoluto para a raiz do projeto (Dash_API / cockpit-operacional)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Diretório físico para salvamento de prints em disco
@@ -182,7 +181,7 @@ def listar_trades():
 @app.post("/api/trades/lote", dependencies=[Depends(verificar_autenticacao)])
 def salvar_lote_trades(trades: List[Trade]):
     conn = sqlite3.connect(DB_PATH)
-    cursor = conn.query() if hasattr(conn, 'query') else conn.cursor()
+    cursor = conn.cursor()
     for t in trades:
         cursor.execute('''
             INSERT OR REPLACE INTO trades VALUES (
@@ -220,11 +219,11 @@ def limpar_todos_trades():
     return {"success": True}
 
 # -------------------------------------------------------------------------
-# ROTAS DE UPLOAD DE PRINTS E ARQUIVOS ESTÁTICOS
+# ROTAS DE UPLOAD DE PRINTS E ARQUIVOS ESTÁTICOS (Com URL Dinâmica)
 # -------------------------------------------------------------------------
 
 @app.post("/api/upload-print", dependencies=[Depends(verificar_autenticacao)])
-async def upload_print(file: UploadFile = File(...)):
+async def upload_print(request: Request, file: UploadFile = File(...)):
     try:
         ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
         filename = f"print_{int(os.path.getmtime(UPLOAD_DIR) if os.path.exists(UPLOAD_DIR) else 0)}_{os.urandom(4).hex()}.{ext}"
@@ -234,12 +233,14 @@ async def upload_print(file: UploadFile = File(...)):
             content = await file.read()
             buffer.write(content)
             
-        file_url = f"http://127.0.0.1:8000/uploads/prints/{filename}"
+        # Pega a URL base dinamicamente (funciona tanto no localhost quanto no Render!)
+        base_url = str(request.base_url).rstrip("/")
+        file_url = f"{base_url}/uploads/prints/{filename}"
         return {"success": True, "url": file_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Monta a pasta uploads estaticamente (protegida por autenticação básica)
+# Monta a pasta uploads estaticamente
 app.mount("/uploads", StaticFiles(directory=os.path.join(BASE_DIR, "uploads")), name="uploads")
 
 # Inicializa o banco de dados geral e as tabelas automaticamente
@@ -250,29 +251,21 @@ app.include_router(trades.router, dependencies=[Depends(verificar_autenticacao)]
 app.include_router(usuarios.router, dependencies=[Depends(verificar_autenticacao)])
 app.include_router(fiscal.router, dependencies=[Depends(verificar_autenticacao)])
 
-# Classe customizada para forçar autenticação em ficheiros estáticos e HTML
-class ProtectedStaticFiles(StaticFiles):
-    async def get_response(self, path: str, scope):
-        request = Request(scope)
-        try:
-            auth_header = request.headers.get("authorization")
-            if not auth_header:
-                raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Basic"})
-            # Simula a validação com base no cabeçalho recebido
-            import base64
-            scheme, param = auth_header.split(" ")
-            if scheme.lower() == "basic":
-                decoded = base64.b64decode(param).decode("utf8")
-                username, password = decoded.split(":")
-                is_user_ok = secrets.compare_digest(username.encode("utf8"), ADMIN_USER.encode("utf8"))
-                is_pass_ok = secrets.compare_digest(password.encode("utf8"), ADMIN_PASSWORD.encode("utf8"))
-                if not (is_user_ok and is_pass_ok):
-                    raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Basic"})
-            else:
-                raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Basic"})
-        except Exception:
-            return PlainTextResponse("Autenticação necessária", status_code=401, headers={"WWW-Authenticate": "Basic"})
-        return await super().get_response(path, scope)
+# -------------------------------------------------------------------------
+# ROTA RAIZ (SOLUÇÃO PARA O "NOT FOUND" NA NUVEM E NO PC)
+# -------------------------------------------------------------------------
+@app.get("/", dependencies=[Depends(verificar_autenticacao)])
+def serve_root():
+    # Procura pelo index.html na raiz do projeto
+    index_path = os.path.join(BASE_DIR, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"message": "Cockpit Operacional API ativa. index.html não encontrado na raiz."}
+
+# Monta o frontend estático caso precise de servir assets da pasta frontend
+frontend_path = os.path.join(BASE_DIR, "frontend")
+if os.path.exists(frontend_path):
+    app.mount("/frontend", StaticFiles(directory=frontend_path), name="frontend")
 
 @app.get("/api/status", dependencies=[Depends(verificar_autenticacao)])
 def status_api():
