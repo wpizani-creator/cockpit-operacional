@@ -3,7 +3,7 @@
     "id": 1,
     "nome": "NotaCorretagem_01-11-25_30-11-25.pdf",
     "data": 1792261558.8707986,
-    "selecionado": true,
+    "selecionado": false,
     "notas": [
       {
         "data": "03/11/2025",
@@ -307,7 +307,7 @@
     "id": 4,
     "nome": "NotaCorretagem_01-12-25_31-12-25 (1).pdf",
     "data": 1792337597.986618,
-    "selecionado": false,
+    "selecionado": true,
     "notas": [
       {
         "data": "01/12/2025",

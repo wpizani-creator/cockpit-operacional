@@ -1,7 +1,7 @@
 """
 Projeto: Cockpit Operacional API (Dashboard de Day Trade)
 Módulo: main.py
-Descrição: Ponto de entrada principal da API FastAPI com suporte a autenticação por senha, prints em disco, persistência em SQLite e Módulo Fiscal.
+Descrição: Ponto de entrada principal da API FastAPI com suporte a autenticação por senha, prints em disco, persistência em SQLite e Módulo de Parâmetros.
 """
 
 import os
@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import PlainTextResponse, FileResponse
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 
 # Adiciona a raiz ao path para garantir importação correta do banco
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -23,7 +23,7 @@ from api_backend.routers import trades, usuarios, fiscal
 
 app = FastAPI(
     title="Cockpit Operacional API (Seguro & Modular)",
-    version="2.3.0",
+    version="2.4.0",
 )
 
 # -------------------------------------------------------------------------
@@ -56,7 +56,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Caminho absoluto para a raiz do projeto (Dash_API / cockpit-operacional)
+# Caminho absoluto para a raiz do projeto
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Diretório físico para salvamento de prints em disco
@@ -64,13 +64,15 @@ UPLOAD_DIR = os.path.join(BASE_DIR, "uploads", "prints")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # -------------------------------------------------------------------------
-# CONFIGURAÇÃO DO BANCO DE DADOS SQLITE PARA OS TRADES EM DISCO
+# CONFIGURAÇÃO DO BANCO DE DADOS SQLITE (TRADES E PARÂMETROS)
 # -------------------------------------------------------------------------
 DB_PATH = os.path.join(BASE_DIR, "trades.db")
 
 def init_trades_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    
+    # Tabela de Trades
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS trades (
             id TEXT PRIMARY KEY,
@@ -118,6 +120,15 @@ def init_trades_db():
             opcao3 TEXT
         )
     ''')
+
+    # FASE 1: Tabela dedicada para Parâmetros do Sistema (Setups, Cestas, Contas, Timeframes, etc.)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS parametros (
+            chave TEXT PRIMARY KEY,
+            valor TEXT
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -168,6 +179,57 @@ class Trade(BaseModel):
     opcao2: Optional[str] = ""
     opcao3: Optional[str] = ""
 
+class ParametroPayload(BaseModel):
+    chave: str
+    valor: Any
+
+# -------------------------------------------------------------------------
+# ROTAS DE PARÂMETROS (Fase 2: GET, POST e Sincronização)
+# -------------------------------------------------------------------------
+@app.get("/api/parametros", dependencies=[Depends(verificar_autenticacao)])
+def listar_parametros():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT chave, valor FROM parametros")
+    rows = cursor.fetchall()
+    conn.close()
+    
+    import json
+    resultado = {}
+    for row in rows:
+        try:
+            resultado[row["chave"]] = json.loads(row["valor"])
+        except:
+            resultado[row["chave"]] = row["valor"]
+    return resultado
+
+@app.post("/api/parametros", dependencies=[Depends(verificar_autenticacao)])
+def salvar_parametro(payload: ParametroPayload):
+    import json
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    valor_str = json.dumps(payload.valor) if not isinstance(payload.valor, str) else payload.valor
+    cursor.execute("INSERT OR REPLACE INTO parametros (chave, valor) VALUES (?, ?)", (payload.chave, valor_str))
+    conn.commit()
+    conn.close()
+    return {"success": True, "chave": payload.chave}
+
+@app.post("/api/parametros/lote", dependencies=[Depends(verificar_autenticacao)])
+def salvar_parametros_lote(dados: Dict[str, Any]):
+    import json
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    for chave, valor in dados.items():
+        valor_str = json.dumps(valor) if not isinstance(valor, str) else valor
+        cursor.execute("INSERT OR REPLACE INTO parametros (chave, valor) VALUES (?, ?)", (chave, valor_str))
+    conn.commit()
+    conn.close()
+    return {"success": True, "total": len(dados)}
+
+# -------------------------------------------------------------------------
+# ROTAS DE TRADES EXISTENTES
+# -------------------------------------------------------------------------
 @app.get("/api/trades", dependencies=[Depends(verificar_autenticacao)])
 def listar_trades():
     conn = sqlite3.connect(DB_PATH)
@@ -219,9 +281,8 @@ def limpar_todos_trades():
     return {"success": True}
 
 # -------------------------------------------------------------------------
-# ROTAS DE UPLOAD DE PRINTS E ARQUIVOS ESTÁTICOS (Com URL Dinâmica)
+# ROTAS DE UPLOAD DE PRINTS E ARQUIVOS ESTÁTICOS
 # -------------------------------------------------------------------------
-
 @app.post("/api/upload-print", dependencies=[Depends(verificar_autenticacao)])
 async def upload_print(request: Request, file: UploadFile = File(...)):
     try:
@@ -233,36 +294,27 @@ async def upload_print(request: Request, file: UploadFile = File(...)):
             content = await file.read()
             buffer.write(content)
             
-        # Pega a URL base dinamicamente (funciona tanto no localhost quanto no Render!)
         base_url = str(request.base_url).rstrip("/")
         file_url = f"{base_url}/uploads/prints/{filename}"
         return {"success": True, "url": file_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Monta a pasta uploads estaticamente
 app.mount("/uploads", StaticFiles(directory=os.path.join(BASE_DIR, "uploads")), name="uploads")
 
-# Inicializa o banco de dados geral e as tabelas automaticamente
 inicializar_banco()
 
-# Registra os roteadores modulares adicionais com dependência global de autenticação
 app.include_router(trades.router, dependencies=[Depends(verificar_autenticacao)])
 app.include_router(usuarios.router, dependencies=[Depends(verificar_autenticacao)])
 app.include_router(fiscal.router, dependencies=[Depends(verificar_autenticacao)])
 
-# -------------------------------------------------------------------------
-# ROTA RAIZ (SOLUÇÃO PARA O "NOT FOUND" NA NUVEM E NO PC)
-# -------------------------------------------------------------------------
 @app.get("/", dependencies=[Depends(verificar_autenticacao)])
 def serve_root():
-    # Procura pelo index.html na raiz do projeto
     index_path = os.path.join(BASE_DIR, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
-    return {"message": "Cockpit Operacional API ativa. index.html não encontrado na raiz."}
+    return {"message": "Cockpit Operacional API ativa."}
 
-# Monta o frontend estático caso precise de servir assets da pasta frontend
 frontend_path = os.path.join(BASE_DIR, "frontend")
 if os.path.exists(frontend_path):
     app.mount("/frontend", StaticFiles(directory=frontend_path), name="frontend")
@@ -271,7 +323,7 @@ if os.path.exists(frontend_path):
 def status_api():
     return {
         "status": "online",
-        "mensagem": "API rodando com segurança e proteção por senha!",
+        "mensagem": "API rodando com suporte a parâmetros no SQLite!",
     }
 
 if __name__ == "__main__":

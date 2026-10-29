@@ -1,6 +1,6 @@
 <!-- ========================================================================================= -->
 <!-- ARQUIVO: index.html                                                                       -->
-<!-- CONTEXTO: Cockpit Operacional - Day Trade (Ponto de Entrada SPA e Navegação Modular)      -->
+<!-- CONTEXTO: Cockpit Operacional - Day Trade (Ponto de Entrada SPA e Sincronização SQLite)   -->
 <!-- ========================================================================================= -->
 <!DOCTYPE html>
 <html lang="pt-BR" class="dark">
@@ -156,7 +156,7 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <span class="text-xs bg-gray-800 text-gray-300 px-3 py-1 rounded-md border border-gray-700 font-mono">
+            <span id="statusSincronizacao" class="text-xs bg-gray-800 text-gray-300 px-3 py-1 rounded-md border border-gray-700 font-mono">
                 <i class="fa-solid fa-circle text-emerald-500 text-[10px] mr-1.5"></i> Sincronizado
             </span>
         </div>
@@ -173,8 +173,58 @@
         </div>
     </main>
 
-    <!-- Script de Carregamento SPA Blindado -->
+    <!-- Script de Carregamento SPA e Sincronização de Backup Automático -->
     <script>
+        // ROTINA DE MIGRAÇÃO E BACKUP AUTOMÁTICO (localStorage -> SQLite)
+        async function sincronizarLocalStorageComSQLite() {
+            const elStatus = document.getElementById('statusSincronizacao');
+            if (localStorage.length === 0) return;
+
+            try {
+                if (elStatus) {
+                    elStatus.innerHTML = `<i class="fa-solid fa-arrows-rotate fa-spin text-amber-400 text-[10px] mr-1.5"></i> Backup Local...`;
+                }
+
+                const dadosLocais = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const chave = localStorage.key(i);
+                    // Ignora chaves internas de controle
+                    if (chave.startsWith('_')) continue;
+                    
+                    const valorBruto = localStorage.getItem(chave);
+                    try {
+                        dadosLocais[chave] = JSON.parse(valorBruto);
+                    } catch (e) {
+                        dadosLocais[chave] = valorBruto;
+                    }
+                }
+
+                if (Object.keys(dadosLocais).length > 0) {
+                    const authHeader = 'Basic ' + btoa('w.pizani:08121984');
+                    const response = await fetch('/api/parametros/lote', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': authHeader
+                        },
+                        body: JSON.stringify(dadosLocais)
+                    });
+
+                    if (response.ok) {
+                        localStorage.setItem('_localStorage_migrado_sqlite', 'true');
+                        console.log("✅ Backup automático do localStorage para o SQLite realizado com sucesso!");
+                    }
+                }
+            } catch (erro) {
+                console.warn("Sincronização em segundo plano indisponível no momento:", erro.message);
+            } finally {
+                if (elStatus) {
+                    elStatus.innerHTML = `<i class="fa-solid fa-circle text-emerald-500 text-[10px] mr-1.5"></i> Sincronizado`;
+                }
+            }
+        }
+
+        // CARREGAMENTO MODULAR SPA
         async function carregarModulo(nomeModulo) {
             const container = document.getElementById('conteudoModulo');
             container.innerHTML = `<div class="text-center py-20 text-gray-500 text-xs"><i class="fa-solid fa-spinner fa-spin mr-2"></i> A carregar módulo...</div>`;
@@ -232,6 +282,11 @@
                     </div>`;
             }
         }
+
+        // Executa a sincronização do backup assim que a página é aberta
+        window.addEventListener('DOMContentLoaded', () => {
+            sincronizarLocalStorageComSQLite();
+        });
     </script>
 </body>
 </html>
