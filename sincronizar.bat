@@ -1,0 +1,2 @@
+python atualizar_nuvem.py
+pause
