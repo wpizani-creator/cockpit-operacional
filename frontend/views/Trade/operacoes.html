@@ -1,6 +1,6 @@
 <!-- ========================================================================================= -->
 <!-- ARQUIVO: frontend/views/Trade/operacoes.html                                              -->
-<!-- CONTEXTO: Seletor Estilo Profit + Modais + Persistência Garantida de Notas e Opções       -->
+<!-- CONTEXTO: Seletor Estilo Profit Sincronizado com API de Parâmetros e SQLite (Nuvem/Local)   -->
 <!-- ========================================================================================= -->
 <div class="space-y-5">
     <!-- Cabeçalho do Módulo -->
@@ -13,7 +13,7 @@
                 <h1 class="text-base font-bold text-white tracking-wide">Módulo: Operações (Persistência em Disco & Nuvem)</h1>
                 <span class="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded font-mono">operacoes.html</span>
             </div>
-            <p class="text-xs text-gray-400 mt-1">Base unificada conectada ao FastAPI via SQLite com suporte a filtros dinâmicos de período e opções customizadas.</p>
+            <p class="text-xs text-gray-400 mt-1">Base unificada conectada ao FastAPI via SQLite com suporte a filtros dinâmicos de período e opções customizadas[cite: 17].</p>
         </div>
 
         <!-- Botões de Ação Superiores -->
@@ -343,6 +343,7 @@
         
         let cacheTradesMemoriaBrutos = [];
         let cacheTradesMemoriaFiltradosPeriodo = [];
+        let cacheParametrosServidor = {};
         let filtroPeriodoAtual = '100';
         let dataInicioPersonalizada = null;
         let dataFimPersonalizada = null;
@@ -350,6 +351,35 @@
         let tradeAtualParaNota = null;
         let tradeAtualParaPrint = null;
         let arquivoPrintPendenteBlob = null;
+
+        // Pré-carrega os parâmetros do FastAPI para garantir robustez em qualquer dispositivo / modo anônimo
+        async function carregarParametrosServidorGeral() {
+            const categorias = ['setups', 'complementos', 'timeframes', 'entradas', 'saidas', 'checklist', 'falhas', 'mm_tend', 'vwap_tend', 'res_sup_prox', 'momento', 'emocional', 'cesta_ativos', 'opcao1', 'opcao2', 'opcao3'];
+            for (const cat of categorias) {
+                try {
+                    const response = await fetch(`/api/parametros?categoria=${cat}`, { credentials: 'same-origin' });
+                    if (response.ok) {
+                        const dados = await response.json();
+                        cacheParametrosServidor[cat] = dados;
+                    }
+                } catch(e) {
+                    console.error(`Erro ao carregar parâmetros da categoria ${cat}:`, e);
+                }
+            }
+        }
+
+        function obterOpcoesParametro(categoria) {
+            // Se houver cache do servidor, usa ele prioritariamente (resolve o problema do telemóvel / modo anónimo)
+            if (cacheParametrosServidor[categoria] && cacheParametrosServidor[categoria].length > 0) {
+                return cacheParametrosServidor[categoria];
+            }
+            // Fallback para o localStorage se necessário
+            try { 
+                const local = JSON.parse(localStorage.getItem(`cockpit_cat_${categoria}`) || '[]');
+                if (local.length > 0) return local;
+            } catch (e) {}
+            return [];
+        }
 
         function converterParaNumero(valorStr) {
             if (!valorStr || typeof valorStr !== 'string') return 0;
@@ -443,7 +473,6 @@
             };
         }
 
-        // DROPDOWN E MODAL DE PERÍODO ESTILO PROFIT
         window.toggleMenuPeriodoProfit = function() {
             const menu = document.getElementById('menuPeriodoProfit');
             if (menu) menu.classList.toggle('hidden');
@@ -577,10 +606,6 @@
             renderizarTabelaTrades(cacheTradesMemoriaFiltradosPeriodo);
             atualizarPainelMetricas(cacheTradesMemoriaFiltradosPeriodo);
             filtrarTabelaExcel();
-        }
-
-        function obterOpcoesParametro(categoria) {
-            try { return JSON.parse(localStorage.getItem(`cockpit_cat_${categoria}`) || '[]'); } catch (e) { return []; }
         }
 
         function gerarSelectParametro(categoria, valorAtual, idTrade, campoTrade) {
@@ -754,9 +779,11 @@
             await salvarLoteBackend([higienizarTradeObjeto(trade)]);
         };
 
-        // Rota Relativa e Suporte a Autenticação
         window.carregarTradesPainel = async function() {
             try {
+                // Carrega primeiro os parâmetros do servidor para alimentar os seletores
+                await carregarParametrosServidorGeral();
+
                 const response = await fetch("/api/trades", {
                     credentials: "same-origin"
                 });
@@ -770,7 +797,6 @@
             }
         };
 
-        // Rota Relativa e Suporte a Autenticação
         async function salvarLoteBackend(tradesLote) {
             try {
                 const loteSanitizado = tradesLote.map(higienizarTradeObjeto);
