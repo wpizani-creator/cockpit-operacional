@@ -1,6 +1,6 @@
 <!-- ========================================================================================= -->
 <!-- ARQUIVO: frontend/views/Fiscal/ir.html                                                    -->
-<!-- CONTEXTO: Módulo Fiscal PRO - Correção do Cálculo do Líquido Nota (Negócios - Taxas - IR)  -->
+<!-- CONTEXTO: Módulo Fiscal PRO - Sincronização de Status DARF em SQLite via FastAPI           -->
 <!-- ========================================================================================= -->
 <div class="space-y-6 relative">
 
@@ -159,7 +159,7 @@
                             <td id="detPrejuizoAnt" class="py-3 px-2 text-right font-bold text-red-400">R$ 0,00</td>
                         </tr>
                         <tr><td class="py-3 px-2 text-gray-300 font-bold">3. Total do Resultado Bruto (Após Compensação)</td><td id="detResBrutoApósComp" class="py-3 px-2 text-right font-bold text-white">R$ 0,00</td></tr>
-                        <tr><td class="py-3 px-2 text-gray-400">4. (-) Soma das Despesas Operacionais (Corretagem / B3)</td><td id="detSomaDespesas" class="py-3 px-2 text-right font-bold text-red-400">R$ 0,00</td></tr>
+                        <tr><td class="py-3 px-2 text-gray-400">4. (-) Soma das Despesas Operacionais (Corretagem / B3)</td><td id="detSomaDespesas" class="py-3 px-2 text-right font-bold text-white">R$ 0,00</td></tr>
                         <tr class="bg-gray-950/50"><td class="py-3 px-2 text-amber-400 font-bold">5. Base de Cálculo do Imposto (Resultado Líquido)</td><td id="detBaseCalculo" class="py-3 px-2 text-right font-bold text-amber-400">R$ 0,00</td></tr>
                         <tr><td class="py-3 px-2 text-gray-400">6. Imposto Devido (20%)</td><td id="detImpostoDevido" class="py-3 px-2 text-right font-bold text-white">R$ 0,00</td></tr>
                         <tr><td class="py-3 px-2 text-gray-400">7. (-) IR Retido na Fonte Abatido (Dedo-Duro Acumulado)</td><td id="detDedoDuro" class="py-3 px-2 text-right font-bold text-amber-400">R$ 0,00</td></tr>
@@ -173,7 +173,7 @@
         </div>
     </div>
 
-    <!-- ABA 2: LIVRO DE APURAÇÃO & HISTÓRICO (COM LINHA DE TOTAIS NO RODAPÉ) -->
+    <!-- ABA 2: LIVRO DE APURAÇÃO & HISTÓRICO -->
     <div id="conteudoAbaPrejuizos" class="hidden space-y-5">
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl space-y-4">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-800 pb-4">
@@ -210,20 +210,20 @@
                 </div>
             </div>
 
-            <!-- TABELA AUDITÁVEL COM LINHA DE TOTALIZADOR NO TFOOT -->
+            <!-- TABELA AUDITÁVEL -->
             <div class="overflow-x-auto">
                 <table class="w-full text-xs text-left font-mono">
                     <thead>
                         <tr class="bg-gray-950 text-gray-400 border-b border-gray-800 uppercase text-[10px]">
                             <th class="py-3 px-2 text-center">Mês / Ano</th>
                             <th class="py-3 px-2 text-right">(A)<br>Res. Líquido</th>
-                            <th class="py-3 px-2 text-right text-red-400">(B)<br>Prej. Acum. Anterior</th>
-                            <th class="py-3 px-2 text-right text-amber-400">(C)<br>Base Cálculo</th>
-                            <th class="py-3 px-2 text-right text-red-300">(D)<br>Saldo Prej. Transportar</th>
-                            <th class="py-3 px-2 text-right">(E)<br>IR Devido (20%)</th>
-                            <th class="py-3 px-2 text-right text-amber-400">(F1)<br>IRRF do Mês</th>
-                            <th class="py-3 px-2 text-right text-amber-300">(F2)<br>IRRF Acum. Ano*</th>
-                            <th class="py-3 px-2 text-right text-emerald-400">(G)<br>DARF a Pagar</th>
+                            <th class="py-3 px-2 text-right text-gray-300">(B)<br>Prej. Acum. Anterior</th>
+                            <th class="py-3 px-2 text-right text-gray-300">(C)<br>Base Cálculo</th>
+                            <th class="py-3 px-2 text-right text-gray-300">(D)<br>Saldo Prej. Transportar</th>
+                            <th class="py-3 px-2 text-right text-gray-300">(E)<br>IR Devido (20%)</th>
+                            <th class="py-3 px-2 text-right text-gray-300">(F1)<br>IRRF do Mês</th>
+                            <th class="py-3 px-2 text-right text-gray-300">(F2)<br>IRRF Acum. Ano*</th>
+                            <th class="py-3 px-2 text-right text-gray-300">(G)<br>DARF a Pagar</th>
                             <th class="py-3 px-2 text-center">(H)<br>Status / Ação</th>
                         </tr>
                     </thead>
@@ -274,11 +274,11 @@
                 </div>
                 <div class="bg-gray-950 border border-gray-800 p-4 rounded-xl">
                     <div class="text-[10px] text-gray-400 uppercase">Total de IRRF "Dedo-Duro" Retido</div>
-                    <div id="totIrrfRetido" class="text-base font-bold mt-1 text-amber-400">R$ 0,00</div>
+                    <div id="totIrrfRetido" class="text-base font-bold mt-1 text-white">R$ 0,00</div>
                 </div>
                 <div class="bg-gray-950 border border-gray-800 p-4 rounded-xl">
                     <div class="text-[10px] text-gray-400 uppercase">Total de DARF Recolhida</div>
-                    <div id="totDarfRecolhida" class="text-base font-bold mt-1 text-emerald-400">R$ 0,00</div>
+                    <div id="totDarfRecolhida" class="text-base font-bold mt-1 text-white">R$ 0,00</div>
                 </div>
             </div>
 
@@ -287,11 +287,11 @@
                 <table class="w-full text-xs text-left font-mono">
                     <tbody class="divide-y divide-gray-800 text-gray-300">
                         <tr><td class="py-3 px-3 text-gray-400">1. Soma dos Resultados Brutos das Operações</td><td id="resConsBruto" class="py-3 px-3 text-right font-bold text-white">R$ 0,00</td></tr>
-                        <tr><td class="py-3 px-3 text-gray-400">2. Soma das Despesas Operacionais (Corretagem / Emolumentos / B3)</td><td id="resConsDespesas" class="py-3 px-3 text-right font-bold text-red-400">R$ 0,00</td></tr>
+                        <tr><td class="py-3 px-3 text-gray-400">2. Soma das Despesas Operacionais (Corretagem / Emolumentos / B3)</td><td id="resConsDespesas" class="py-3 px-3 text-right font-bold text-white">R$ 0,00</td></tr>
                         <tr class="bg-gray-950/50"><td class="py-3 px-3 text-amber-400 font-bold">3. Resultado Líquido Consolidado do Período</td><td id="resConsLiquido" class="py-3 px-3 text-right font-bold text-amber-400">R$ 0,00</td></tr>
-                        <tr><td class="py-3 px-3 text-gray-400">4. Total de Prejuízos Compensados no Período</td><td id="resConsPrejuizoComp" class="py-3 px-3 text-right font-bold text-red-400">R$ 0,00</td></tr>
+                        <tr><td class="py-3 px-3 text-gray-400">4. Total de Prejuízos Compensados no Período</td><td id="resConsPrejuizoComp" class="py-3 px-3 text-right font-bold text-white">R$ 0,00</td></tr>
                         <tr><td class="py-3 px-3 text-gray-400">5. Total de Imposto de Renda Devido (20%)</td><td id="resConsImpDevido" class="py-3 px-3 text-right font-bold text-white">R$ 0,00</td></tr>
-                        <tr><td class="py-3 px-3 text-gray-400">6. Total de IRRF Retido na Fonte ("Dedo-Duro")</td><td id="resConsIrrf" class="py-3 px-3 text-right font-bold text-amber-400">R$ 0,00</td></tr>
+                        <tr><td class="py-3 px-3 text-gray-400">6. Total de IRRF Retido na Fonte ("Dedo-Duro")</td><td id="resConsIrrf" class="py-3 px-3 text-right font-bold text-white">R$ 0,00</td></tr>
                         <tr class="bg-emerald-950/20 border-t-2 border-emerald-500/30">
                             <td class="py-3 px-3 text-emerald-400 font-bold text-sm">7. TOTAL LÍQUIDO DE DARFS A RECOLHER NO PERÍODO</td>
                             <td id="resConsDarfPagar" class="py-3 px-3 text-right font-bold text-emerald-400 text-sm">R$ 0,00</td>
@@ -337,7 +337,7 @@
             </div>
         </div>
 
-        <!-- CARDS DE TOTAIS DA CONCILIAÇÃO (ENTRE IMPORTAÇÃO E DETALHES) -->
+        <!-- CARDS DE TOTAIS DA CONCILIAÇÃO -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono">
             <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl shadow">
                 <div class="text-[10px] text-gray-400 uppercase">VAL . NEGÓCIOS (TOTAL)</div>
@@ -385,7 +385,39 @@
 <script>
     window.arquivosPdfHistorico = [];
     window.prejuizosManuaisList = [];
-    window.statusDarfMap = JSON.parse(localStorage.getItem('cockpit_status_darf_v1') || '{}');
+    window.statusDarfMap = {};
+
+    // Sincronização automática e migração do localStorage para o FastAPI sem perda de dados
+    async function carregarStatusDarfServidor() {
+        try {
+            const resp = await fetch('/api/fiscal/status-darf', { credentials: 'same-origin' });
+            if (resp.ok) {
+                const dadosServidor = await resp.json();
+                if (dadosServidor && Object.keys(dadosServidor).length > 0) {
+                    window.statusDarfMap = dadosServidor;
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn("Erro ao buscar status de DARF do servidor, verificando legado...", e);
+        }
+
+        // Migração automática de legado do localStorage se o servidor estiver vazio
+        try {
+            const localLegado = JSON.parse(localStorage.getItem('cockpit_status_darf_v1') || '{}');
+            if (localLegado && Object.keys(localLegado).length > 0) {
+                window.statusDarfMap = localLegado;
+                await fetch('/api/fiscal/status-darf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(localLegado)
+                });
+            }
+        } catch (e) {
+            window.statusDarfMap = {};
+        }
+    }
 
     function dataParaTimestamp(dataStr) {
         if (!dataStr) return 0;
@@ -420,11 +452,22 @@
         window.recalcularApuracaoIR();
     };
 
-    window.toggleStatusDarf = function(mesAnoParam) {
+    window.toggleStatusDarf = async function(mesAnoParam) {
         const mesAno = mesAnoParam || window.obterMesAnoSelecionado();
         if (!mesAno) return;
         window.statusDarfMap[mesAno] = !window.statusDarfMap[mesAno];
-        localStorage.setItem('cockpit_status_darf_v1', JSON.stringify(window.statusDarfMap));
+        
+        // Sincroniza imediatamente com o servidor FastAPI
+        try {
+            await fetch('/api/fiscal/status-darf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(window.statusDarfMap)
+            });
+        } catch (e) {
+            console.error("Erro ao sincronizar status da DARF com o servidor:", e);
+        }
         
         window.recalcularApuracaoIR();
         window.renderizarTabelaPrejuizos();
@@ -490,6 +533,7 @@
             await fetch('/api/fiscal/salvar-prejuizo-manual', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
                 body: JSON.stringify({ mes_ano: mesAno, valor: valor, observacao: obs })
             });
             window.fecharModalPrejuizo();
@@ -508,6 +552,7 @@
             await fetch('/api/fiscal/deletar-prejuizo-manual', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
                 body: JSON.stringify({ id: id })
             });
             await window.carregarPrejuizos();
@@ -518,9 +563,10 @@
 
     window.carregarPrejuizos = async function() {
         try {
+            await carregarStatusDarfServidor();
             const [respHist, respMan] = await Promise.all([
-                fetch('/api/fiscal/historico'),
-                fetch('/api/fiscal/prejuizos-manuais')
+                fetch('/api/fiscal/historico', { credentials: 'same-origin' }),
+                fetch('/api/fiscal/prejuizos-manuais', { credentials: 'same-origin' })
             ]);
             const dataHist = await respHist.json();
             const dataMan = await respMan.json();
@@ -536,7 +582,6 @@
         window.renderizarTotaisGerais();
     };
 
-    // RENDERIZA A TABELA DE HISTÓRICO COM LINHA DE TOTAIS NO TFOOT
     window.renderizarTabelaPrejuizos = function() {
         const tbody = document.getElementById('corpoTabelaPrejuizos');
         const tfoot = document.getElementById('rodapeTabelaPrejuizos');
@@ -716,25 +761,25 @@
                     <td class="py-3 px-2 text-right font-bold ${item.resLiquidoMes < 0 ? 'text-red-400' : 'text-emerald-400'}">
                         R$ ${item.resLiquidoMes.toFixed(2)}
                     </td>
-                    <td class="py-3 px-2 text-right text-red-400 font-bold">
+                    <td class="py-3 px-2 text-right text-white font-bold">
                         R$ ${item.prejuizoAnterior > 0 ? '-' : ''}${item.prejuizoAnterior.toFixed(2)}
                     </td>
-                    <td class="py-3 px-2 text-right text-amber-400 font-bold">
+                    <td class="py-3 px-2 text-right text-white font-bold">
                         R$ ${item.baseCalculo.toFixed(2)}
                     </td>
-                    <td class="py-3 px-2 text-right text-red-300 font-bold">
+                    <td class="py-3 px-2 text-right text-white font-bold">
                         R$ ${item.saldoPrejuizoTransportar > 0 ? '-' : ''}${item.saldoPrejuizoTransportar.toFixed(2)}
                     </td>
                     <td class="py-3 px-2 text-right text-white">
                         R$ ${item.irDevido.toFixed(2)}
                     </td>
-                    <td class="py-3 px-2 text-right text-amber-400">
+                    <td class="py-3 px-2 text-right text-white">
                         R$ ${item.irrfMes.toFixed(2)}
                     </td>
-                    <td class="py-3 px-2 text-right font-bold text-amber-300">
+                    <td class="py-3 px-2 text-right font-bold text-white">
                         R$ ${item.irrfAcumuladoDisponivel.toFixed(2)}
                     </td>
-                    <td class="py-3 px-2 text-right font-bold text-emerald-400">
+                    <td class="py-3 px-2 text-right font-bold text-white">
                         R$ ${item.darfPagar.toFixed(2)}
                     </td>
                     <td class="py-3 px-2 text-center">
@@ -757,9 +802,9 @@
                 <td class="py-3 px-2 text-right">—</td>
                 <td class="py-3 px-2 text-right">—</td>
                 <td class="py-3 px-2 text-right text-white">R$ ${somaIrDevido.toFixed(2)}</td>
-                <td class="py-3 px-2 text-right text-amber-400">R$ ${somaIrrfMes.toFixed(2)}</td>
+                <td class="py-3 px-2 text-right text-white">R$ ${somaIrrfMes.toFixed(2)}</td>
                 <td class="py-3 px-2 text-right">—</td>
-                <td class="py-3 px-2 text-right font-bold text-emerald-400">R$ ${somaDarfPagar.toFixed(2)}</td>
+                <td class="py-3 px-2 text-right font-bold text-white">R$ ${somaDarfPagar.toFixed(2)}</td>
                 <td class="py-3 px-2 text-center">—</td>
             </tr>
         `;
@@ -879,7 +924,11 @@
 
         const resLiquidoTotal = totalBruto - totalDespesas;
 
-        document.getElementById('totResLiquido').textContent = `R$ ${resLiquidoTotal.toFixed(2)}`;
+        // Quadro - Resultado Líquido Total com cor dinâmica (verde se >= 0, vermelho se < 0)
+        const elTotResLiquido = document.getElementById('totResLiquido');
+        elTotResLiquido.textContent = `R$ ${resLiquidoTotal.toFixed(2)}`;
+        elTotResLiquido.className = `text-base font-bold mt-1 ${resLiquidoTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+
         document.getElementById('totImpostoDevido').textContent = `R$ ${totalImpostoDevido.toFixed(2)}`;
         document.getElementById('totIrrfRetido').textContent = `R$ ${totalIrrf.toFixed(2)}`;
         document.getElementById('totDarfRecolhida').textContent = `R$ ${totalDarfPagar.toFixed(2)}`;
@@ -1049,7 +1098,8 @@
 
     window.carregarHistorico = async function() {
         try {
-            const resp = await fetch('/api/fiscal/historico');
+            await carregarStatusDarfServidor();
+            const resp = await fetch('/api/fiscal/historico', { credentials: 'same-origin' });
             const data = await resp.json();
             window.arquivosPdfHistorico = data.historico || [];
         } catch(e) {
@@ -1102,6 +1152,7 @@
             await fetch('/api/fiscal/toggle-arquivo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
                 body: JSON.stringify({ index: idx })
             });
             await window.carregarHistorico();
@@ -1115,6 +1166,7 @@
             await fetch('/api/fiscal/marcar-todas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
                 body: JSON.stringify({ status: status })
             });
             await window.carregarHistorico();
@@ -1136,7 +1188,6 @@
                 const irrfVal = Number(n.irrf || 0);
                 const taxasLiquidas = Math.max(0, totalDesp - irrfVal);
                 
-                // CORREÇÃO: Líquido da nota = Val. Negócios - Taxas - IRRF
                 const liqVal = valNegoc - taxasLiquidas - irrfVal;
 
                 somaValNegocios += valNegoc;
@@ -1164,7 +1215,6 @@
             }
         });
 
-        // Atualiza os cards com base no filtro visual (arquivos marcados)
         window.atualizarCardsConciliacao(notasAtivas);
 
         if (notasAtivas.length === 0) {
@@ -1181,7 +1231,6 @@
             const irrfVal = Number(n.irrf || 0);
             const taxasLiquidas = Math.max(0, totalDesp - irrfVal);
             
-            // CORREÇÃO: Líquido por nota alinhado com a planilha (valNegoc - taxasLiquidas - irrfVal)
             const liqVal = valNegoc - taxasLiquidas - irrfVal;
 
             return `
@@ -1213,6 +1262,7 @@
 
                 await fetch('/api/fiscal/processar-pdf', {
                     method: 'POST',
+                    credentials: 'same-origin',
                     body: formData
                 });
             }
@@ -1230,7 +1280,10 @@
     window.limparHistoricoPdf = async function() {
         if (!confirm("Deseja realmente apagar todo o histórico de PDFs do servidor?")) return;
         try {
-            await fetch('/api/fiscal/limpar-historico', { method: 'POST' });
+            await fetch('/api/fiscal/limpar-historico', { 
+                method: 'POST',
+                credentials: 'same-origin' 
+            });
             await window.carregarHistorico();
         } catch(e) {
             console.error("Erro ao limpar histórico:", e);

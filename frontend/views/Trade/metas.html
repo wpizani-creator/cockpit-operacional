@@ -1,6 +1,6 @@
 <!-- ========================================================================================= -->
 <!-- ARQUIVO: frontend/views/Trade/metas.html                                                  -->
-<!-- CONTEXTO: Conexão com FastAPI/SQLite para cálculo de Taxa Real e Resultado Atual         -->
+<!-- CONTEXTO: Conexão Direta com FastAPI/SQLite para Metas e Gestão de Risco (Sem LocalStorage)-->
 <!-- ========================================================================================= -->
 <div class="max-w-[96%] mx-auto space-y-5 pb-10">
     <!-- Cabeçalho do Módulo -->
@@ -10,10 +10,10 @@
                 <span class="bg-amber-600/20 text-amber-400 border border-amber-500/30 p-2 rounded-lg text-sm">
                     <i class="fa-solid fa-bullseye"></i>
                 </span>
-                <h1 class="text-base font-bold text-white tracking-wide">Módulo: Metas & Gestão de Risco</h1>
+                <h1 class="text-base font-bold text-white tracking-wide">Módulo: Metas & Gestão de Risco (SQLite / FastAPI)</h1>
                 <span class="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded font-mono">metas.html</span>
             </div>
-            <p class="text-xs text-gray-400 mt-1">Acompanhamento automatizado de metas e operações filtradas por conta.</p>
+            <p class="text-xs text-gray-400 mt-1">Acompanhamento automatizado de metas persistidas no servidor e operações filtradas por conta.</p>
         </div>
 
         <div class="flex items-center gap-2">
@@ -65,7 +65,7 @@
         </div>
 
         <div id="containerTabelaMetasContas" class="p-5 space-y-4 transition-all duration-300">
-            <p id="descricaoModeloMeta" class="text-[11px] text-gray-400">Planejamento financeiro mensal e acompanhamento em tempo real.</p>
+            <p id="descricaoModeloMeta" class="text-[11px] text-gray-400">Planejamento financeiro mensal e acompanhamento em tempo real sincronizado com o servidor.</p>
             
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
@@ -142,7 +142,7 @@
     (function() {
         const KEY_CONTAS = 'cockpit_contas_completo';
         const KEY_CALENDARIO = 'cockpit_calendario_customizacoes_v10';
-        const KEY_METAS_SAZONAIS = 'cockpit_metas_sazonais_v17';
+        const KEY_METAS_LOCAL_LEGADO = 'cockpit_metas_sazonais_v17';
 
         const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
         const anoCorrente = 2026;
@@ -151,31 +151,63 @@
         const diaHojeReal = dataHoje.getDate();
 
         let cacheTradesMemoria = [];
+        let cacheMetasServidor = {};
 
-        async function carregarTradesBackend() {
+        async function carregarDadosBackend() {
             try {
-                const response = await fetch("http://127.0.0.1:8000/api/trades");
-                if (response.ok) {
-                    cacheTradesMemoria = await response.json();
+                // Carrega trades do servidor FastAPI[cite: 9]
+                const respTrades = await fetch("http://127.0.0.1:8000/api/trades", { credentials: 'same-origin' });
+                if (respTrades.ok) {
+                    cacheTradesMemoria = await respTrades.json();
                 }
             } catch (err) {
                 console.error("Erro ao carregar trades da API:", err);
             }
+
+            try {
+                // Carrega metas do servidor FastAPI
+                const respMetas = await fetch("http://127.0.0.1:8000/api/metas", { credentials: 'same-origin' });
+                if (respMetas.ok) {
+                    cacheMetasServidor = await respMetas.json();
+                } else {
+                    migrarMetasLocalStorageParaServidor();
+                }
+            } catch (err) {
+                console.warn("Servidor de metas indisponível, usando cache local/legado:", err);
+                migrarMetasLocalStorageParaServidor();
+            }
         }
 
-        function limparLocalStorageAntigo() {
+        async function migrarMetasLocalStorageParaServidor() {
             try {
-                const chavesParaRemover = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && (key.includes('cockpit_metas_sazonais') || key.includes('cockpit_metas_sazonais_por_conta')) && key !== KEY_METAS_SAZONAIS) {
-                        chavesParaRemover.push(key);
+                let dadosLocais = {};
+                const brutoLocal = localStorage.getItem(KEY_METAS_LOCAL_LEGADO);
+                if (brutoLocal) {
+                    dadosLocais = JSON.parse(brutoLocal);
+                } else {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.includes('cockpit_metas_sazonais')) {
+                            try {
+                                const val = JSON.parse(localStorage.getItem(key));
+                                if (val) Object.assign(dadosLocais, val);
+                            } catch(e){}
+                        }
                     }
                 }
-                chavesParaRemover.forEach(k => localStorage.removeItem(k));
-            } catch(e) {}
+                cacheMetasServidor = dadosLocais;
+
+                // Tenta enviar o legado migrado para o FastAPI salvar no SQLite
+                await fetch("http://127.0.0.1:8000/api/metas", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(dadosLocais)
+                });
+            } catch(e) {
+                console.error("Erro na migração de metas:", e);
+            }
         }
-        limparLocalStorageAntigo();
 
         function convNum(str) {
             if (!str || (typeof str !== 'string' && typeof str !== 'number')) return 0;
@@ -409,9 +441,7 @@
                 blocoUnidade.style.display = modeloMetaConta === 'reinvestimento' ? 'none' : 'flex';
             }
 
-            let metasSazonais = {};
-            try { metasSazonais = JSON.parse(localStorage.getItem(KEY_METAS_SAZONAIS) || '{}'); } catch(e) {}
-            const dadosConta = metasSazonais[contaId] || {};
+            const dadosConta = cacheMetasServidor[contaId] || {};
             const metricasReais = obterMetricasReaisPorMes(contaId);
 
             if (modeloMetaConta === 'sazonal') {
@@ -600,35 +630,42 @@
             }
         }
 
-        window.salvarMetasSazonais = function() {
+        window.salvarMetasSazonais = async function() {
             const selectConta = document.getElementById('selectContaMeta');
             if (!selectConta) return;
             const contaId = selectConta.value;
-            let metasSazonais = {};
-            try { metasSazonais = JSON.parse(localStorage.getItem(KEY_METAS_SAZONAIS) || '{}'); } catch(e) {}
 
-            if (!metasSazonais[contaId]) metasSazonais[contaId] = {};
+            if (!cacheMetasServidor[contaId]) cacheMetasServidor[contaId] = {};
 
             document.querySelectorAll('.input-sazonal').forEach(function(inp) {
                 const mes = inp.getAttribute('data-mes');
                 const campo = inp.getAttribute('data-campo');
-                if (!metasSazonais[contaId][mes]) metasSazonais[contaId][mes] = {};
-                metasSazonais[contaId][mes][campo] = inp.value;
+                if (!cacheMetasServidor[contaId][mes]) cacheMetasServidor[contaId][mes] = {};
+                cacheMetasServidor[contaId][mes][campo] = inp.value;
             });
 
             document.querySelectorAll('.input-composto').forEach(function(inp) {
                 const mes = inp.getAttribute('data-mes');
                 const campo = inp.getAttribute('data-campo');
-                if (!metasSazonais[contaId][mes]) metasSazonais[contaId][mes] = {};
-                metasSazonais[contaId][mes][campo] = inp.value;
+                if (!cacheMetasServidor[contaId][mes]) cacheMetasServidor[contaId][mes] = {};
+                cacheMetasServidor[contaId][mes][campo] = inp.value;
             });
 
             try {
-                limparLocalStorageAntigo();
-                localStorage.setItem(KEY_METAS_SAZONAIS, JSON.stringify(metasSazonais));
-                alert('Metas salvas com sucesso!');
+                const response = await fetch("http://127.0.0.1:8000/api/metas", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(cacheMetasServidor)
+                });
+
+                if (response.ok) {
+                    alert('Metas salvas com sucesso no servidor SQLite!');
+                } else {
+                    alert('Erro ao salvar no servidor FastAPI.');
+                }
             } catch(e) {
-                alert('Erro ao salvar no armazenamento local. Limpe os dados do navegador se o problema persistir.');
+                alert('Erro de conexão com o servidor FastAPI ao salvar metas.');
             }
             renderizarMatrizSazonal();
             processarTabelaAuditoria();
@@ -710,7 +747,7 @@
             verificarEstadoOculto();
             carregarSelectContas();
             inicializarFiltroMeses();
-            await carregarTradesBackend();
+            await carregarDadosBackend();
             renderizarMatrizSazonal();
             processarTabelaAuditoria();
         }, 100);

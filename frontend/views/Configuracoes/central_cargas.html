@@ -239,7 +239,7 @@
 
     window.carregarDadosBaseCentral = async function() {
         try {
-            const response = await fetch("http://127.0.0.1:8000/api/trades");
+            const response = await fetch("/api/trades", { credentials: 'same-origin' });
             if (!response.ok) throw new Error("Erro ao carregar trades do servidor.");
             const trades = await response.json();
             
@@ -547,9 +547,10 @@
                 }
             });
 
-            const response = await fetch("http://127.0.0.1:8000/api/trades/lote", {
+            const response = await fetch("/api/trades/lote", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: 'same-origin',
                 body: JSON.stringify(baseAtual)
             });
 

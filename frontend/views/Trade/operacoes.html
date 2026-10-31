@@ -1,6 +1,6 @@
 <!-- ========================================================================================= -->
 <!-- ARQUIVO: frontend/views/Trade/operacoes.html                                              -->
-<!-- CONTEXTO: Seletor Estilo Profit + Fallback Triplo Garantido (Servidor -> Local -> Estático)-->
+<!-- CONTEXTO: Seletor Estilo Profit + Migração Automática para SQLite / FastAPI               -->
 <!-- ========================================================================================= -->
 <div class="space-y-5">
     <!-- Cabeçalho do Módulo -->
@@ -10,7 +10,7 @@
                 <span class="bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 p-2 rounded-lg text-sm">
                     <i class="fa-solid fa-table-list"></i>
                 </span>
-                <h1 class="text-base font-bold text-white tracking-wide">Módulo: Operações (Persistência em Disco & Nuvem)</h1>
+                <h1 class="text-base font-bold text-white tracking-wide">Módulo: Operações (Persistência em Disco / SQLite)</h1>
                 <span class="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded font-mono">operacoes.html</span>
             </div>
             <p class="text-xs text-gray-400 mt-1">Base unificada conectada ao FastAPI via SQLite com suporte a filtros dinâmicos de período e opções customizadas.</p>
@@ -227,7 +227,7 @@
             <button onclick="fecharModalPeriodoPersonalizado()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-1.5 rounded-lg text-xs font-semibold transition">
                 Cancelar
             </button>
-            <button onclick="aplicarPeriodoPersonalizado()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-1.5 rounded-lg text-xs font-semibold transition shadow">
+            <button onclick="aplicarPeriodoPersonalizado()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-lg text-xs font-semibold transition shadow">
                 OK
             </button>
         </div>
@@ -352,7 +352,6 @@
         let tradeAtualParaPrint = null;
         let arquivoPrintPendenteBlob = null;
 
-        // LISTA MESTRE DE FALLBACK ESTÁTICO (Evita menus vazios em novos acessos ou no celular)
         const PARAMETROS_PADRAO_FALLBACK = {
             setups: ['PULLBACK', 'REVERSÃO', 'ROMPIMENTO', 'FALSA ROMPIMENTO', 'SETUP DIAMANTE', 'VWAP CROSS'],
             complementos: ['DUAS VEZES', 'TENDÊNCIA', 'CONTRA TENDÊNCIA', 'AJUSTE', 'VOLUME ALTO'],
@@ -383,24 +382,19 @@
                             cacheParametrosServidor[cat] = dados;
                         }
                     }
-                } catch(e) {
-                    console.error(`Erro ao carregar parâmetros da categoria ${cat}:`, e);
-                }
+                } catch(e) {}
             }
         }
 
         function obterOpcoesParametro(categoria) {
-            // 1. Tenta carregar os dados vindos do Servidor FastAPI
             if (cacheParametrosServidor[categoria] && cacheParametrosServidor[categoria].length > 0) {
                 return cacheParametrosServidor[categoria];
             }
-            // 2. Tenta carregar os dados gravados no LocalStorage
             try { 
                 const local = JSON.parse(localStorage.getItem(`cockpit_cat_${categoria}`) || '[]');
                 if (local && local.length > 0) return local;
             } catch (e) {}
 
-            // 3. Fallback de Segurança Garantido para Nuvem/Celular
             return PARAMETROS_PADRAO_FALLBACK[categoria] || [];
         }
 
@@ -551,7 +545,6 @@
 
             dataInicioPersonalizada = dtIniVal;
             dataFimPersonalizada = semDataFinal ? null : dtFimVal;
-
             filtroPeriodoAtual = 'personalizado';
 
             const pIni = dtIniVal.split('-');
@@ -804,18 +797,30 @@
 
         window.carregarTradesPainel = async function() {
             try {
-                // Tenta alimentar a memória do frontend com o backend antes de desenhar a tabela
                 await carregarParametrosServidorGeral();
 
+                let trades = [];
                 const response = await fetch("/api/trades", { credentials: "same-origin" });
-                if (!response.ok) throw new Error("Erro ao carregar trades do servidor.");
-                const trades = await response.json();
+                if (response.ok) {
+                    trades = await response.json();
+                }
+
+                // Fallback de migração automática do localStorage se o banco do servidor estiver vazio
+                if (!Array.isArray(trades) || trades.length === 0) {
+                    try {
+                        const localLegacy = JSON.parse(localStorage.getItem('trades_importados') || '[]');
+                        if (Array.isArray(localLegacy) && localLegacy.length > 0) {
+                            await salvarLoteBackend(localLegacy);
+                            localStorage.removeItem('trades_importados');
+                            trades = localLegacy;
+                        }
+                    } catch(e) {}
+                }
+
                 cacheTradesMemoriaBrutos = ordenarTradesDecrescente(trades.map(higienizarTradeObjeto));
-                
                 aplicarFiltroPeriodoMemoria();
             } catch (err) {
                 console.error("Erro ao conectar com FastAPI:", err);
-                // Mesmo sem conexão com o banco, garante renderização via Fallback Estático
                 aplicarFiltroPeriodoMemoria();
             }
         };
@@ -862,7 +867,7 @@
         };
 
         window.limparBase = async function() {
-            if (confirm("Deseja limpar toda a base de operações do servidor?")) {
+            if (confirm("Deseja limpar toda a base de operações do servidor SQLite?")) {
                 try {
                     const response = await fetch("/api/trades", { 
                         method: "DELETE",
@@ -1047,23 +1052,44 @@
             document.getElementById('inputCsvOculto').click();
         };
 
-        function sincronizarContaAutomatica(numConta) {
-            if (!numConta || numConta === '-' || numConta.trim() === '') return;
-            try {
-                let contas = JSON.parse(localStorage.getItem(STORAGE_KEY_CONTAS) || '[]');
-                const existe = contas.some(c => c.id.toString().trim() === numConta.toString().trim());
-                if (!existe) {
-                    contas.push({
-                        id: numConta.toString().trim(),
-                        corretora: 'Nova Corretora',
-                        tipo: 'Mesa Proprietária',
-                        taxaWin: '1.00',
-                        taxaDol: '3.00'
-                    });
-                    localStorage.setItem(STORAGE_KEY_CONTAS, JSON.stringify(contas));
-                }
-            } catch (e) {}
+async function sincronizarContaAutomatica(numConta) {
+        if (!numConta || numConta === '-' || numConta.trim() === '') return;
+        const idLimpo = numConta.toString().trim();
+        try {
+            // 1. Busca as contas atuais direto do servidor SQLite
+            const resp = await fetch('/api/contas', { credentials: 'same-origin' });
+            let contas = resp.ok ? await resp.json() : [];
+            if (!Array.isArray(contas)) contas = [];
+
+            // 2. Verifica se a conta já existe
+            const existe = contas.some(c => c.id.toString().trim() === idLimpo);
+            if (!existe) {
+                // 3. Adiciona a nova conta à lista
+                contas.push({
+                    id: idLimpo,
+                    corretora: 'Nova Corretora',
+                    tipo: 'Mesa Proprietária',
+                    modeloMeta: 'sazonal',
+                    taxaWin: '1.00',
+                    taxaDol: '3.00',
+                    dedoDuro: '1.00',
+                    impostoPJ: '19.00',
+                    taxaMesa: '0.00',
+                    notas: 'Criada automaticamente via importação'
+                });
+
+                // 4. Salva a lista consolidada no servidor SQLite via FastAPI
+                await fetch('/api/contas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(contas)
+                });
+            }
+        } catch (e) {
+            console.error("Erro ao sincronizar conta automática no servidor:", e);
         }
+    }
 
         window.processarArquivoCsv = function(event) {
             const arquivo = event.target.files[0];
@@ -1180,7 +1206,7 @@
 
                     const sucesso = await salvarLoteBackend(novosTradesLote);
                     if (sucesso) {
-                        alert(`Importação concluída com sucesso! ${novosTradesLote.length} operações enviadas ao banco de dados em disco.`);
+                        alert(`Importação concluída com sucesso! ${novosTradesLote.length} operações enviadas ao banco de dados SQLite.`);
                         carregarTradesPainel();
                     } else {
                         alert("Erro ao salvar lote de operações no FastAPI.");
@@ -1481,7 +1507,6 @@
             }
         }
 
-        // Inicialização
         carregarTradesPainel();
     })();
 </script>

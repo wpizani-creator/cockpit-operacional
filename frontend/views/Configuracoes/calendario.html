@@ -1,6 +1,6 @@
 <!-- ========================================================================================= -->
 <!-- ARQUIVO: frontend/views/Configuracoes/calendario.html                                     -->
-<!-- CONTEXTO: Calendário Operacional com Padrão Visual Unificado (Feriados, Folgas e Férias)  -->
+<!-- CONTEXTO: Calendário Operacional - Migrado para SQLite / FastAPI com Zero Perda           -->
 <!-- ========================================================================================= -->
 <div class="max-w-[96%] mx-auto space-y-4 pb-10 h-[calc(100vh-120px)] flex flex-col">
     
@@ -14,7 +14,7 @@
                 <h1 class="text-base font-bold text-white tracking-wide">Calendário Operacional & Gestão de Feriados/Folgas</h1>
                 <span class="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded font-mono">calendario.html</span>
             </div>
-            <p class="text-xs text-gray-400 mt-1">Clique em qualquer dia para alternar o status (Útil ➔ Folga 'D' ➔ Férias 'F').</p>
+            <p class="text-xs text-gray-400 mt-1">Clique em qualquer dia para alternar o status (Útil ➔ Folga 'D' ➔ Férias 'F') [Servidor SQLite].</p>
         </div>
 
         <div class="flex items-center gap-3">
@@ -59,20 +59,52 @@
 
 <script>
     (function() {
-        const STORAGE_KEY = 'cockpit_calendario_customizacoes_v10';
         let dadosCalendario = {};
 
-        function carregarDados() {
+        async function carregarDadosServidor() {
             try {
-                dadosCalendario = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-            } catch(e) {
-                dadosCalendario = {};
-            }
+                const resp = await fetch('/api/calendario', { credentials: 'same-origin' });
+                if (resp.ok) {
+                    const dados = await resp.json();
+                    if (dados && typeof dados === 'object') {
+                        dadosCalendario = dados;
+                        return;
+                    }
+                }
+            } catch(e) {}
+
+            // Migração de Fallback do localStorage se necessário
+            try {
+                const localStr = localStorage.getItem('cockpit_calendario_customizacoes_v10');
+                if (localStr) {
+                    const dadosLocais = JSON.parse(localStr);
+                    if (dadosLocais && typeof dadosLocais === 'object' && Object.keys(dadosLocais).length > 0) {
+                        dadosCalendario = dadosLocais;
+                        await salvarDadosServidor(false);
+                        localStorage.removeItem('cockpit_calendario_customizacoes_v10');
+                        return;
+                    }
+                }
+            } catch(e) {}
+
+            dadosCalendario = {};
         }
 
-        function salvarDados() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(dadosCalendario));
-            alert('Calendário operacional guardado com sucesso!');
+        async function salvarDadosServidor(mostrarAlerta = true) {
+            try {
+                await fetch('/api/calendario', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(dadosCalendario)
+                });
+                if (mostrarAlerta) {
+                    alert('Calendário operacional guardado com sucesso no servidor SQLite!');
+                }
+            } catch(e) {
+                console.error("Erro ao salvar calendário no servidor:", e);
+                if (mostrarAlerta) alert('Erro ao comunicar com o servidor FastAPI.');
+            }
         }
 
         function calcularFeriadosNacionais(ano) {
@@ -125,8 +157,8 @@
             return feriados;
         }
 
-        function renderizar() {
-            carregarDados();
+        async function renderizar() {
+            await carregarDadosServidor();
             const anoSelect = document.getElementById('anoSelecionado');
             if (!anoSelect) return;
             const ano = parseInt(anoSelect.value) || 2026;
@@ -171,7 +203,6 @@
                     let nomeFeriado = feriados[dataChave];
                     let statusCustom = dadosCalendario[dataChave];
 
-                    // Padrão base (Dia útil padrão)
                     let classesTailwind = "day-cell h-9 flex items-center justify-center rounded border text-xs font-mono transition select-none cursor-pointer bg-gray-900 border-gray-800 text-gray-300 hover:border-indigo-500";
                     let textoExibicao = d;
                     let statusAtributo = "util";
@@ -179,11 +210,9 @@
                     if (ehFimDeSemana) {
                         classesTailwind = "day-cell h-9 flex items-center justify-center rounded border text-xs font-mono transition select-none cursor-pointer bg-gray-900/30 border-gray-800/40 text-gray-600";
                     } else if (nomeFeriado) {
-                        // Padrão do Feriado: Fundo translúcido com borda forte e texto em destaque
                         classesTailwind = "day-cell h-9 flex items-center justify-center rounded border text-xs font-mono transition select-none cursor-pointer bg-amber-950/60 border-amber-700/70 text-amber-300 font-bold";
                     }
 
-                    // Aplicando o mesmo padrão visual do feriado para Folga [D] e Férias [F], com letras no mesmo tamanho do número
                     if (statusCustom === 'folga') {
                         classesTailwind = "day-cell h-9 flex items-center justify-center rounded border text-xs font-mono transition select-none cursor-pointer bg-blue-950/70 border-blue-600 text-blue-300 font-bold";
                         statusAtributo = "folga";
@@ -207,8 +236,7 @@
             container.innerHTML = htmlGeral;
         }
 
-        // Delegação de eventos otimizada para alternar o status e renderizar instantaneamente
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', async function(event) {
             const dayElement = event.target.closest('.day-cell');
             if (!dayElement) return;
 
@@ -225,7 +253,7 @@
                 delete dadosCalendario[dataStr];
             }
 
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(dadosCalendario));
+            await salvarDadosServidor(false);
             renderizar();
         });
 
@@ -236,7 +264,7 @@
 
         const btnSalvar = document.getElementById('btnSalvarCalendario');
         if (btnSalvar) {
-            btnSalvar.addEventListener('click', salvarDados);
+            btnSalvar.addEventListener('click', () => salvarDadosServidor(true));
         }
 
         setTimeout(renderizar, 50);

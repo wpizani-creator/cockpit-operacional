@@ -1,6 +1,6 @@
 <!-- ========================================================================================= -->
 <!-- ARQUIVO: frontend/views/backup-restauracao.html                                           -->
-<!-- CONTEXTO: Módulo de Backup e Restauração de Dados do Cockpit Operacional                  -->
+<!-- CONTEXTO: Módulo de Backup e Restauração de Dados - Migrado para SQLite / FastAPI         -->
 <!-- ========================================================================================= -->
 <div class="space-y-6 max-w-4xl mx-auto">
     <!-- Cabeçalho -->
@@ -10,10 +10,10 @@
                 <span class="bg-amber-600/20 text-amber-400 border border-amber-500/30 p-2 rounded-lg text-sm">
                     <i class="fa-solid fa-database"></i>
                 </span>
-                <h1 class="text-base font-bold text-white tracking-wide">Módulo: Backup & Restauração</h1>
+                <h1 class="text-base font-bold text-white tracking-wide">Módulo: Backup & Restauração (SQLite / FastAPI)</h1>
                 <span class="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded font-mono">backup-restauracao.html</span>
             </div>
-            <p class="text-xs text-gray-400 mt-1">Exporte todos os seus dados salvos no navegador (operações, cadastros, contas, setups) para um arquivo seguro ou restaure um backup anterior.</p>
+            <p class="text-xs text-gray-400 mt-1">Exporte todos os seus dados salvos no servidor local (operações, cadastros, contas, setups) para um arquivo seguro ou restaure um backup anterior.</p>
         </div>
     </div>
 
@@ -23,8 +23,8 @@
         <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg flex flex-col justify-between">
             <div>
                 <div class="text-blue-400 text-2xl mb-3"><i class="fa-solid fa-file-arrow-down"></i></div>
-                <h2 class="text-sm font-bold text-white mb-2">Fazer Backup dos Dados</h2>
-                <p class="text-xs text-gray-400 mb-6">Baixe um arquivo compactado contendo toda a base de dados atual do seu Cockpit Operacional (operações, parâmetros, contas e configurações).</p>
+                <h2 class="text-sm font-bold text-white mb-2">Fazer Backup do Servidor</h2>
+                <p class="text-xs text-gray-400 mb-6">Baixe um arquivo compactado contendo toda a base de dados atual do seu Cockpit Operacional armazenada no SQLite.</p>
             </div>
             <button onclick="realizarBackupSistema()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition shadow">
                 <i class="fa-solid fa-download"></i> Baixar Arquivo de Backup (.json)
@@ -35,8 +35,8 @@
         <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-lg flex flex-col justify-between">
             <div>
                 <div class="text-emerald-400 text-2xl mb-3"><i class="fa-solid fa-file-arrow-up"></i></div>
-                <h2 class="text-sm font-bold text-white mb-2">Restaurar Sistema</h2>
-                <p class="text-xs text-gray-400 mb-6">Envie um arquivo de backup gerado anteriormente para restaurar todas as configurações e operações no seu navegador.</p>
+                <h2 class="text-sm font-bold text-white mb-2">Restaurar Servidor</h2>
+                <p class="text-xs text-gray-400 mb-6">Envie um arquivo de backup gerado anteriormente para restaurar todas as configurações e operações no banco de dados SQLite.</p>
             </div>
             <button onclick="document.getElementById('inputArquivoBackup').click()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition shadow">
                 <i class="fa-solid fa-upload"></i> Selecionar Arquivo e Restaurar
@@ -47,60 +47,103 @@
 </div>
 
 <script>
-    function realizarBackupSistema() {
+    async function realizarBackupSistema() {
         try {
             const dadosBackup = {};
-            for (let i = 0; i < localStorage.length; i++) {
-                const chave = localStorage.key(i);
-                dadosBackup[chave] = localStorage.getItem(chave);
-            }
+
+            // Recolhe os dados das principais rotas do FastAPI
+            const [respTrades, respContas, respParam, respDarf] = await Promise.all([
+                fetch('/api/trades', { credentials: 'same-origin' }).catch(() => null),
+                fetch('/api/contas', { credentials: 'same-origin' }).catch(() => null),
+                fetch('/api/parametros', { credentials: 'same-origin' }).catch(() => null),
+                fetch('/api/fiscal/status-darf', { credentials: 'same-origin' }).catch(() => null)
+            ]);
+
+            if (respTrades && respTrades.ok) dadosBackup.trades = await respTrades.json();
+            if (respContas && respContas.ok) dadosBackup.contas = await respContas.json();
+            if (respParam && respParam.ok) dadosBackup.parametros = await respParam.json();
+            if (respDarf && respDarf.ok) dadosBackup.status_darf = await respDarf.json();
 
             const blob = new Blob([JSON.stringify(dadosBackup, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             const dataAtual = new Date().toISOString().slice(0, 10);
-            a.download = `backup_cockpit_operacional_${dataAtual}.json`;
+            a.download = `backup_cockpit_sqlite_${dataAtual}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         } catch (erro) {
-            console.error("Erro ao gerar backup:", erro);
+            console.error("Erro ao gerar backup do servidor:", erro);
             alert("Erro ao gerar backup: " + erro.message);
         }
     }
 
-    function restaurarBackupSistema(event) {
+    async function restaurarBackupSistema(event) {
         const arquivo = event.target.files[0];
         if (!arquivo) return;
 
-        if (!confirm("Atenção: A restauração irá substituir os dados atuais pelos do arquivo de backup. Deseja continuar?")) {
+        if (!confirm("Atenção: A restauração irá substituir os dados atuais no servidor SQLite pelos do arquivo de backup. Deseja continuar?")) {
             event.target.value = '';
             return;
         }
 
         const leitor = new FileReader();
-        leitor.onload = function(e) {
+        leitor.onload = async function(e) {
             try {
                 const dadosRestaurados = JSON.parse(e.target.result);
                 
-                if (!dadosRestaurados || typeof dadosRestaurados !== 'object' || Array.isArray(dadosRestaurados)) {
+                if (!dadosRestaurados || typeof dadosRestaurados !== 'object') {
                     throw new Error("Formato de backup inválido.");
                 }
 
-                localStorage.clear();
-                for (const chave in dadosRestaurados) {
-                    if (Object.prototype.hasOwnProperty.call(dadosRestaurados, chave)) {
-                        localStorage.setItem(chave, dadosRestaurados[chave]);
-                    }
+                // Restaura Trades
+                if (Array.isArray(dadosRestaurados.trades)) {
+                    await fetch('/api/trades', { method: 'DELETE', credentials: 'same-origin' });
+                    await fetch('/api/trades/lote', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(dadosRestaurados.trades)
+                    });
+                }
+
+                // Restaura Contas
+                if (dadosRestaurados.contas) {
+                    await fetch('/api/contas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(dadosRestaurados.contas)
+                    });
+                }
+
+                // Restaura Parâmetros
+                if (dadosRestaurados.parametros) {
+                    await fetch('/api/parametros/lote', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(dadosRestaurados.parametros)
+                    });
+                }
+
+                // Restaura Status DARF
+                if (dadosRestaurados.status_darf) {
+                    await fetch('/api/fiscal/status-darf', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(dadosRestaurados.status_darf)
+                    });
                 }
                 
-                alert("Backup restaurado com sucesso! O sistema será recarregado.");
+                alert("Backup restaurado com sucesso no servidor SQLite! O sistema será recarregado.");
                 location.reload();
             } catch (erro) {
-                console.error("Erro ao ler o arquivo de backup:", erro);
-                alert("Erro ao ler o arquivo de backup. Certifique-se de que é um JSON válido gerado pelo Cockpit.");
+                console.error("Erro ao restaurar o backup:", erro);
+                alert("Erro ao restaurar o arquivo de backup. Certifique-se de que é um JSON válido gerado pelo Cockpit.");
                 event.target.value = '';
             }
         };

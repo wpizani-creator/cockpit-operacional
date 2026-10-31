@@ -1,7 +1,7 @@
 <!-- 
  ================================================================================================
   ARQUIVO: contas.html (Gerenciamento de Contas, Taxas Operacionais e Parâmetros Fiscais)
-  ATUALIZADO EM: 2026-10-12
+  ATUALIZADO EM: 2026-10-12 (Migrado para SQLite / FastAPI com Migração Automática)
  ================================================================================================
 -->
 <div class="space-y-4">
@@ -11,7 +11,7 @@
             <h2 class="text-lg font-semibold text-white flex items-center gap-2">
                 <i class="fa-solid fa-wallet text-indigo-400"></i> Cadastro de Contas & Taxas
             </h2>
-            <p class="text-xs text-gray-400 mt-0.5">Gerencie corretoras, tipos de contas, taxas operacionais, modelo de metas e parâmetros contratuais.</p>
+            <p class="text-xs text-gray-400 mt-0.5">Gerencie corretoras, tipos de contas, taxas operacionais, modelo de metas e parâmetros contratuais (Servidor SQLite).</p>
         </div>
     </div>
 
@@ -42,43 +42,85 @@
 </div>
 
 <script>
-    window.sincronizarContaAutomatica = function(numeroConta) {
+    window.sincronizarContaAutomatica = async function(numeroConta) {
         if (!numeroConta || numeroConta.trim() === '' || numeroConta === '-') return;
         
-        let contas = [];
         try {
-            contas = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
-        } catch(e) {
-            contas = [];
-        }
+            const resp = await fetch('/api/contas', { credentials: 'same-origin' });
+            let contas = resp.ok ? await resp.json() : [];
+            if (!Array.isArray(contas)) contas = [];
 
-        const existe = contas.some(function(c) {
-            return c.id.toString().trim() === numeroConta.toString().trim();
-        });
-
-        if (!existe) {
-            contas.push({
-                id: numeroConta.toString().trim(),
-                corretora: 'Nova Corretora',
-                tipo: 'Real',
-                modeloMeta: 'sazonal',
-                taxaWin: '0.00',
-                taxaDol: '0.00',
-                dedoDuro: '1.00',
-                impostoPJ: '19.00',
-                taxaMesa: '0.00',
-                notas: ''
+            const existe = contas.some(function(c) {
+                return c.id.toString().trim() === numeroConta.toString().trim();
             });
-            localStorage.setItem('cockpit_contas_completo', JSON.stringify(contas));
+
+            if (!existe) {
+                contas.push({
+                    id: numeroConta.toString().trim(),
+                    corretora: 'Nova Corretora',
+                    tipo: 'Real',
+                    modeloMeta: 'sazonal',
+                    taxaWin: '0.00',
+                    taxaDol: '0.00',
+                    dedoDuro: '1.00',
+                    impostoPJ: '19.00',
+                    taxaMesa: '0.00',
+                    notas: ''
+                });
+                await salvarContasServidor(contas);
+            }
+        } catch(e) {
+            console.error("Erro na sincronização automática de conta:", e);
         }
     };
 
-    function carregarContas() {
+    async function salvarContasServidor(contas) {
+        try {
+            await fetch('/api/contas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(contas)
+            });
+        } catch(e) {
+            console.error("Erro ao salvar contas no servidor:", e);
+        }
+    }
+
+    async function migrarLegadoLocalParaServidor() {
+        const storageKey = 'cockpit_contas_completo';
+        let dadosLocais = null;
+        try {
+            const localStr = localStorage.getItem(storageKey);
+            if (localStr) dadosLocais = JSON.parse(localStr);
+        } catch(e) {}
+
+        if (Array.isArray(dadosLocais) && dadosLocais.length > 0) {
+            try {
+                // Verifica se o servidor já possui dados
+                const resp = await fetch('/api/contas', { credentials: 'same-origin' });
+                let servidorContas = resp.ok ? await resp.json() : [];
+                
+                if (!Array.isArray(servidorContas) || servidorContas.length === 0) {
+                    await salvarContasServidor(dadosLocais);
+                }
+                localStorage.removeItem(storageKey);
+            } catch(e) {}
+        }
+    }
+
+    window.carregarContas = async function() {
+        await migrarLegadoLocalParaServidor();
+
         let contas = [];
         try {
-            contas = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
+            const resp = await fetch('/api/contas', { credentials: 'same-origin' });
+            if (resp.ok) {
+                const dados = await resp.json();
+                if (Array.isArray(dados)) contas = dados;
+            }
         } catch(e) {
-            contas = [];
+            console.error("Erro ao carregar contas do servidor:", e);
         }
 
         const tbody = document.getElementById('corpoTabelaContas');
@@ -144,39 +186,47 @@
         }
 
         tbody.innerHTML = htmlRows;
-    }
-
-    window.atualizarConta = function(index, campo, valor) {
-        let contas = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
-        if (contas[index]) {
-            contas[index][campo] = valor;
-            localStorage.setItem('cockpit_contas_completo', JSON.stringify(contas));
-        }
     };
 
-    window.atualizarModeloConta = function(index, novoModelo) {
-        let contas = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
-        if (contas[index]) {
-            const modeloAnterior = contas[index].modeloMeta || 'sazonal';
-            if (modeloAnterior !== novoModelo) {
-                const confirmar = confirm('Aviso: Ao alterar o modelo de meta desta conta, os dados preenchidos na tabela de metas anterior poderão ser limpos ou reconfigurados. Deseja realmente prosseguir?');
-                if (!confirmar) {
-                    carregarContas(); // Restaura o select visualmente
-                    return;
-                }
+    window.atualizarConta = async function(index, campo, valor) {
+        try {
+            const resp = await fetch('/api/contas', { credentials: 'same-origin' });
+            let contas = resp.ok ? await resp.json() : [];
+            if (contas[index]) {
+                contas[index][campo] = valor;
+                await salvarContasServidor(contas);
             }
-            contas[index].modeloMeta = novoModelo;
-            localStorage.setItem('cockpit_contas_completo', JSON.stringify(contas));
-        }
+        } catch(e) {}
     };
 
-    window.excluirConta = function(index) {
-        let contas = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
-        contas.pop(); // ou splice
-        contas.splice(index, 1);
-        localStorage.setItem('cockpit_contas_completo', JSON.stringify(contas));
-        carregarContas();
+    window.atualizarModeloConta = async function(index, novoModelo) {
+        try {
+            const resp = await fetch('/api/contas', { credentials: 'same-origin' });
+            let contas = resp.ok ? await resp.json() : [];
+            if (contas[index]) {
+                const modeloAnterior = contas[index].modeloMeta || 'sazonal';
+                if (modeloAnterior !== novoModelo) {
+                    const confirmar = confirm('Aviso: Ao alterar o modelo de meta desta conta, os dados preenchidos na tabela de metas anterior poderão ser limpos ou reconfigurados. Deseja realmente prosseguir?');
+                    if (!confirmar) {
+                        window.carregarContas();
+                        return;
+                    }
+                }
+                contas[index].modeloMeta = novoModelo;
+                await salvarContasServidor(contas);
+            }
+        } catch(e) {}
     };
 
-    carregarContas();
+    window.excluirConta = async function(index) {
+        try {
+            const resp = await fetch('/api/contas', { credentials: 'same-origin' });
+            let contas = resp.ok ? await resp.json() : [];
+            contas.splice(index, 1);
+            await salvarContasServidor(contas);
+            window.carregarContas();
+        } catch(e) {}
+    };
+
+    window.carregarContas();
 </script>

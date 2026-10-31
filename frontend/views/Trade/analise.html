@@ -1,6 +1,6 @@
 <!-- ========================================================================================= -->
 <!-- ARQUIVO: frontend/views/Trade/analise.html                                                -->
-<!-- CONTEXTO: Análise e Playbook Sincronizado com Carregamento Seguro do Chart.js             -->
+<!-- CONTEXTO: Análise e Playbook Sincronizado com API FastAPI/SQLite (Sem Dependência de LocalStorage) -->
 <!-- ========================================================================================= -->
 
 <div class="max-w-[96%] mx-auto space-y-5 pb-10">
@@ -11,10 +11,10 @@
                 <span class="bg-blue-600/20 text-blue-400 border border-blue-500/30 p-2 rounded-lg text-sm">
                     <i class="fa-solid fa-chart-line"></i>
                 </span>
-                <h1 class="text-base font-bold text-white tracking-wide">Módulo: Análise e Playbook</h1>
+                <h1 class="text-base font-bold text-white tracking-wide">Módulo: Análise e Playbook (FastAPI/SQLite)</h1>
                 <span class="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded font-mono">analise.html</span>
             </div>
-            <p class="text-xs text-gray-400 mt-1">Engenharia reversa das suas operações para identificar padrões de alta performance e gargalos operacionais.</p>
+            <p class="text-xs text-gray-400 mt-1">Engenharia reversa das suas operações sincronizada diretamente com o servidor central.</p>
         </div>
 
         <div class="flex items-center gap-2">
@@ -161,8 +161,8 @@
 </div>
 
 <script>
-    const STORAGE_KEY_CONTAS_ANALISE = 'cockpit_contas_completo';
     let cacheTradesAnaliseBrutos = [];
+    let cacheContasServidor = [];
     let meuGraficoEquity = null;
 
     function garantirChartJsCarregado(callback) {
@@ -190,9 +190,17 @@
 
     function obterTaxaAnalise(numConta, ativo) {
         try {
-            const contas = JSON.parse(localStorage.getItem(STORAGE_KEY_CONTAS_ANALISE) || '[]');
-            const conta = contas.find(c => c.id.toString().trim() === numConta.toString().trim());
-            if (!conta) return 0;
+            const conta = cacheContasServidor.find(c => c.id.toString().trim() === numConta.toString().trim());
+            if (!conta) {
+                // Fallback de segurança para localStorage caso contas venham vazias
+                const contasLocal = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
+                const contaLocal = contasLocal.find(c => c.id.toString().trim() === numConta.toString().trim());
+                if (!contaLocal) return 0;
+                const up = (ativo || '').toUpperCase();
+                if (up.includes('WIN')) return converterParaNumAnalise(contaLocal.taxaWin);
+                if (up.includes('WDO')) return converterParaNumAnalise(contaLocal.taxaDol);
+                return 0;
+            }
             const up = (ativo || '').toUpperCase();
             if (up.includes('WIN')) return converterParaNumAnalise(conta.taxaWin);
             if (up.includes('WDO')) return converterParaNumAnalise(conta.taxaDol);
@@ -211,43 +219,74 @@
         return isNaN(ts) ? 0 : ts;
     }
 
-    function carregarOpcoesSelectsAnalise() {
+    async function carregarOpcoesSelectsAnaliseServidor() {
         try {
-            const contas = JSON.parse(localStorage.getItem(STORAGE_KEY_CONTAS_ANALISE) || '[]');
+            // Carrega Contas do Servidor (com fallback localStorage se necessário)
+            try {
+                const respContas = await fetch("http://127.0.0.1:8000/api/contas", { credentials: 'same-origin' });
+                if (respContas.ok) {
+                    cacheContasServidor = await respContas.json();
+                } else {
+                    cacheContasServidor = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
+                }
+            } catch(e) {
+                cacheContasServidor = JSON.parse(localStorage.getItem('cockpit_contas_completo') || '[]');
+            }
+
             const selectConta = document.getElementById('filtroAnaliseConta');
             if (selectConta) {
                 let html = '<option value="">Todas as Contas</option>';
-                contas.forEach(c => html += `<option value="${c.id}">${c.id} (${c.corretora || 'Conta'})</option>`);
+                cacheContasServidor.forEach(c => html += `<option value="${c.id}">${c.id} (${c.corretora || 'Conta'})</option>`);
                 selectConta.innerHTML = html;
             }
 
-            const setups = JSON.parse(localStorage.getItem('cockpit_cat_setups') || '[]');
+            // Carrega Setups do Servidor
+            let setupsLista = [];
+            try {
+                const respSetups = await fetch("http://127.0.0.1:8000/api/parametros?categoria=setups", { credentials: 'same-origin' });
+                if (respSetups.ok) setupsLista = await respSetups.json();
+            } catch(e) {}
+            if (!setupsLista || setupsLista.length === 0) {
+                setupsLista = JSON.parse(localStorage.getItem('cockpit_cat_setups') || '[]');
+            }
+
             const selectSetup = document.getElementById('filtroAnaliseSetup');
             if (selectSetup) {
                 let html = '<option value="">Todos os Setups</option>';
-                setups.forEach(s => {
+                setupsLista.forEach(s => {
                     const nome = s.nome || s;
                     html += `<option value="${nome}">${nome}</option>`;
                 });
                 selectSetup.innerHTML = html;
             }
 
-            const emocional = JSON.parse(localStorage.getItem('cockpit_cat_emocional') || '[]');
+            // Carrega Emocional do Servidor
+            let emocionalLista = [];
+            try {
+                const respEmo = await fetch("http://127.0.0.1:8000/api/parametros?categoria=emocional", { credentials: 'same-origin' });
+                if (respEmo.ok) emocionalLista = await respEmo.json();
+            } catch(e) {}
+            if (!emocionalLista || emocionalLista.length === 0) {
+                emocionalLista = JSON.parse(localStorage.getItem('cockpit_cat_emocional') || '[]');
+            }
+
             const selectEmocional = document.getElementById('filtroAnaliseEmocional');
             if (selectEmocional) {
                 let html = '<option value="">Todos os Estados</option>';
-                emocional.forEach(e => {
+                emocionalLista.forEach(e => {
                     const nome = e.nome || e;
                     html += `<option value="${nome}">${nome}</option>`;
                 });
                 selectEmocional.innerHTML = html;
             }
-        } catch(e) {}
+        } catch(e) {
+            console.error("Erro ao carregar opções para os selects de análise:", e);
+        }
     }
 
     window.carregarDadosEaplicarFiltros = async function() {
         try {
-            const response = await fetch("/api/trades", {
+            const response = await fetch("http://127.0.0.1:8000/api/trades", {
                 credentials: "same-origin"
             });
             if (!response.ok) throw new Error("Erro ao carregar dados da API.");
@@ -481,7 +520,7 @@
     }
 
     setTimeout(() => {
-        carregarOpcoesSelectsAnalise();
+        carregarOpcoesSelectsAnaliseServidor();
         carregarDadosEaplicarFiltros();
     }, 100);
 </script>

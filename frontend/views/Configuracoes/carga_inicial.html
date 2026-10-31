@@ -1,6 +1,6 @@
 <!-- ========================================================================================= -->
 <!-- ARQUIVO: frontend/views/Trade/carga_inicial.html                                          -->
-<!-- CONTEXTO: Carga Inicial & Conciliação - Atualizado com as Novas Colunas Analíticas        -->
+<!-- CONTEXTO: Carga Inicial & Conciliação - Migrado para SQLite / FastAPI com Zero Perda      -->
 <!-- ========================================================================================= -->
 <div class="space-y-6">
     <!-- Cabeçalho da Seção -->
@@ -12,7 +12,7 @@
                 </div>
                 <h1 class="text-lg font-bold text-white tracking-wide">Módulo de Carga Inicial & Conciliação</h1>
             </div>
-            <p class="text-xs text-gray-400">Gerenciamento, exportação e importação de bases por conta operacional com espelhamento real</p>
+            <p class="text-xs text-gray-400">Gerenciamento, exportação e importação de bases por conta operacional com espelhamento em Servidor SQLite</p>
         </div>
     </div>
 
@@ -56,7 +56,7 @@
         <!-- Ações do Fluxo -->
         <div class="flex flex-wrap justify-between items-center gap-3 pt-2 border-t border-gray-800">
             <div class="text-xs text-gray-400">
-                <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i> Sincronizado com o Módulo de Operações (Extração Real).
+                <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i> Sincronizado com o Módulo de Operações (Servidor SQLite).
             </div>
             <div class="flex items-center gap-3">
                 <button onclick="exportarCSVReal()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium text-xs px-4 py-2.5 rounded-lg border border-gray-700 transition flex items-center gap-2 shadow">
@@ -99,13 +99,31 @@
 
 <script>
     const STORAGE_KEY_FLUXO = 'cockpit_fluxo_status_v1';
-    const STORAGE_KEY_TRADES = 'trades_importados';
 
-    function obterDadosOperacoesReais() {
+    async function obterDadosOperacoesReais() {
         try {
-            let dados = JSON.parse(localStorage.getItem(STORAGE_KEY_TRADES));
-            if (dados && Array.isArray(dados)) return dados;
+            const resp = await fetch("/api/trades", { credentials: 'same-origin' });
+            if (resp.ok) {
+                const dados = await resp.json();
+                if (Array.isArray(dados)) return dados;
+            }
         } catch(e) {}
+
+        // Fallback de migração automática do localStorage se a API estiver vazia
+        try {
+            const dadosLocais = JSON.parse(localStorage.getItem('trades_importados') || '[]');
+            if (Array.isArray(dadosLocais) && dadosLocais.length > 0) {
+                await fetch("/api/trades/lote", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(dadosLocais)
+                });
+                localStorage.removeItem('trades_importados');
+                return dadosLocais;
+            }
+        } catch(e) {}
+
         return [];
     }
 
@@ -159,7 +177,7 @@
         });
     }
 
-    function exportarCSVReal() {
+    async function exportarCSVReal() {
         const selectConta = document.getElementById('selectContaOperacional');
         const contaSelecionada = selectConta ? selectConta.value : '';
 
@@ -168,13 +186,14 @@
             return;
         }
 
-        const operacoesReais = obterDadosOperacoesReais().filter(op => String(op.conta || op.Conta) === String(contaSelecionada));
+        const todasOps = await obterDadosOperacoesReais();
+        const operacoesReais = todasOps.filter(op => String(op.conta || op.Conta) === String(contaSelecionada));
+        
         if (operacoesReais.length === 0) {
             alert('Nenhuma operação encontrada para a conta selecionada na base oficial.');
             return;
         }
 
-        // Cabeçalho unificado com todas as colunas otimizadas e as novas colunas analíticas
         const cabecalho = [
             "CONTA", "ATIVO", "ABERTURA", "FECHAMENTO", "TEMPO", "QTD/LADO", 
             "COMPRA", "VENDA", "RES. BRUTO", "RES. (%)", "CUSTO", "RES. LÍQ.", "TET",
@@ -268,7 +287,7 @@
         const reader = new FileReader();
         reader.readAsText(arquivo, 'ISO-8859-1');
 
-        reader.onload = function(e) {
+        reader.onload = async function(e) {
             try {
                 const texto = e.target.result;
                 const linhas = texto.split(/\r\n|\n/).filter(l => l.trim() !== '');
@@ -281,7 +300,7 @@
                 const separador = linhas[0].includes(';') ? ';' : ',';
                 const cabecalho = linhas[0].split(separador).map(h => h.replace(/^"|"$/g, '').trim().toUpperCase());
 
-                let tradesAtuais = JSON.parse(localStorage.getItem(STORAGE_KEY_TRADES) || '[]');
+                let tradesAtuais = await obterDadosOperacoesReais();
                 let novosProcessados = 0;
 
                 for (let i = 1; i < linhas.length; i++) {
@@ -331,7 +350,13 @@
                     }
                 }
 
-                localStorage.setItem(STORAGE_KEY_TRADES, JSON.stringify(tradesAtuais));
+                // Salva em lote no servidor FastAPI (SQLite)
+                await fetch("/api/trades/lote", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(tradesAtuais)
+                });
 
                 const agora = new Date().toLocaleString('pt-BR');
                 let historico = carregarHistoricoFluxo();
@@ -352,7 +377,7 @@
                 salvarHistoricoFluxo(historico);
                 renderizarPainelStatus();
 
-                alert(`Importação concluída com sucesso! ${novosProcessados} registos conciliados com a base oficial de operações.`);
+                alert(`Importação concluída com sucesso! ${novosProcessados} registos conciliados com a base oficial no servidor.`);
 
             } catch (err) {
                 console.error("Erro ao processar importação CSV:", err);
@@ -371,18 +396,30 @@
     }
 
     (async function() {
-        // Carrega contas cadastradas no localStorage unificado do Cockpit (ou usa fallback padrão)
         let contasCadastradas = [];
         try {
-            const contasSalvas = JSON.parse(localStorage.getItem('cockpit_contas_v1') || localStorage.getItem('cockpit_contas') || '[]');
-            if (Array.isArray(contasSalvas) && contasSalvas.length > 0) {
-                contasCadastradas = contasSalvas.map(c => ({
-                    id: c.numero || c.id || c.conta,
-                    nome: `${c.numero || c.id || c.conta} (${c.corretora || c.mesa || 'Conta Operacional'})`
-                }));
+            const respContas = await fetch("/api/contas", { credentials: 'same-origin' });
+            if (respContas.ok) {
+                const dadosContas = await respContas.json();
+                if (Array.isArray(dadosContas) && dadosContas.length > 0) {
+                    contasCadastradas = dadosContas.map(c => ({
+                        id: c.id,
+                        nome: `${c.id} (${c.corretora || 'Conta Operacional'})`
+                    }));
+                }
             }
-        } catch (e) {
-            console.error("Erro ao carregar contas cadastradas:", e);
+        } catch (e) {}
+
+        if (contasCadastradas.length === 0) {
+            try {
+                const contasSalvas = JSON.parse(localStorage.getItem('cockpit_contas_v1') || localStorage.getItem('cockpit_contas') || '[]');
+                if (Array.isArray(contasSalvas) && contasSalvas.length > 0) {
+                    contasCadastradas = contasSalvas.map(c => ({
+                        id: c.numero || c.id || c.conta,
+                        nome: `${c.numero || c.id || c.conta} (${c.corretora || c.mesa || 'Conta Operacional'})`
+                    }));
+                }
+            } catch (e) {}
         }
 
         if (contasCadastradas.length === 0) {

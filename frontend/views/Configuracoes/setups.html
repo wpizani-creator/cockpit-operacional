@@ -1,6 +1,6 @@
 <!-- ========================================================================================= -->
 <!-- ARQUIVO: frontend/views/Configuracoes/setups.html                                         -->
-<!-- CONTEXTO: Gestão de Parâmetros e Setups (Com Opção 1, Opção 2 e Opção 3)                 -->
+<!-- CONTEXTO: Gestão de Parâmetros e Setups (Persistência Instantânea)                        -->
 <!-- ========================================================================================= -->
 <div class="w-full px-6 py-4 space-y-6 max-w-none">
     <!-- Cabeçalho da Seção -->
@@ -13,7 +13,7 @@
                 <h1 class="text-lg font-bold text-white tracking-wide">Parâmetros & Setups Operacionais</h1>
                 <span class="text-[10px] bg-gray-800 text-gray-400 border border-gray-700 px-2.5 py-0.5 rounded font-mono">setups.html</span>
             </div>
-            <p class="text-xs text-gray-400">Cadastre e gerencie as opções que alimentarão os seletores dinâmicos no gerenciamento de trades.</p>
+            <p class="text-xs text-gray-400">Cadastre e gerencie as opções que alimentarão os seletores dinâmicos no gerenciamento de trades (Servidor SQLite).</p>
         </div>
         <div class="flex items-center gap-3">
             <select id="selectCategoriaPainel" onchange="window.carregarParametrosCategoria()" class="bg-gray-950 border border-gray-700 rounded-lg px-3.5 py-2 text-xs text-gray-200 outline-none focus:border-cyan-500 font-mono">
@@ -58,95 +58,71 @@
 
 <script>
     (function() {
-        // Inicializa itens padrão para Emocional, Cesta e as Novas Opções se estiverem vazios
-        function inicializarPadroes() {
-            const keyEmocional = 'cockpit_cat_emocional';
-            if (!localStorage.getItem(keyEmocional)) {
-                const padroesEmocional = [
-                    { nome: 'ANSIEDADE', descricao: 'Operação realizada sob expectativa ou pressa' },
-                    { nome: 'CONFIANÇA', descricao: 'Operação dentro técnica e alinhada ao plano' },
-                    { nome: 'MEDO', descricao: 'Hesitação ou saída prematura por receio' },
-                    { nome: 'IMPULSIVIDADE', descricao: 'Entrada fora do setup motivada por impulso' }
-                ];
-                localStorage.setItem(keyEmocional, JSON.stringify(padroesEmocional));
-            }
-
-            const keyCesta = 'cockpit_cat_cesta_ativos';
-            if (!localStorage.getItem(keyCesta)) {
-                const padroesCesta = [
-                    { nome: 'PETR4', descricao: 'Ativo 1 - Índice de influência principal' },
-                    { nome: 'VALE3', descricao: 'Ativo 2 - Índice de influência principal' },
-                    { nome: 'ITUB4', descricao: 'Ativo 3 - Setor financeiro' },
-                    { nome: 'BBDC3', descricao: 'Ativo 4 - Setor financeiro' }
-                ];
-                localStorage.setItem(keyCesta, JSON.stringify(padroesCesta));
-            }
-
-            const keyOpcao1 = 'cockpit_cat_opcao1';
-            if (!localStorage.getItem(keyOpcao1)) {
-                const padroesOpcao1 = [
-                    { nome: 'ROMP. GAIN (PAGA SLIPPAGE)', descricao: 'No fechamento daria gain mesmo pagando o slip' },
-                    { nome: 'ROMP. LOSS', descricao: 'Daria loss mesmo esperando o fechamento' },
-                    { nome: 'EVITOU LOSS (FORA)', descricao: 'Violou e reverteu, no fechamento não teria entrado' },
-                    { nome: 'MANTÉM VIOLAÇÃO', descricao: 'Entrada mantida na violação sem alteração' }
-                ];
-                localStorage.setItem(keyOpcao1, JSON.stringify(padroesOpcao1));
-            }
-
-            const keyOpcao2 = 'cockpit_cat_opcao2';
-            if (!localStorage.getItem(keyOpcao2)) {
-                const padroesOpcao2 = [
-                    { nome: '-70 PTS (SLIPPAGE)', descricao: 'Entrada atrasada em 70 pontos no fechamento' },
-                    { nome: '-85 PTS (SLIPPAGE)', descricao: 'Entrada atrasada em 85 pontos no fechamento' },
-                    { nome: 'EVITOU LOSS (-300 PTS)', descricao: 'Economia integral do stop loss ao não entrar' },
-                    { nome: 'SEM IMPACTO', descricao: 'Mesmo ponto de entrada / sem diferença' }
-                ];
-                localStorage.setItem(keyOpcao2, JSON.stringify(padroesOpcao2));
-            }
-
-            const keyOpcao3 = 'cockpit_cat_opcao3';
-            if (!localStorage.getItem(keyOpcao3)) {
-                const padroesOpcao3 = [
-                    { nome: 'REGRA ATUAL', descricao: 'Estratégia executada na regra atual' },
-                    { nome: 'REGRA PROPOSTA', descricao: 'Estratégia ajustada para a nova regra' }
-                ];
-                localStorage.setItem(keyOpcao3, JSON.stringify(padroesOpcao3));
-            }
+        function normalizarItens(bruto) {
+            if (!Array.isArray(bruto)) return [];
+            return bruto.map(item => {
+                if (typeof item === 'object' && item !== null) {
+                    return { 
+                        nome: item.nome || item.titulo || item.item || '', 
+                        descricao: item.descricao || item.regra || item.possibilidades || '' 
+                    };
+                }
+                return { nome: String(item), descricao: '' };
+            });
         }
-        inicializarPadroes();
 
         window.obterCategoriaAtual = function() {
             const select = document.getElementById('selectCategoriaPainel');
             return select ? select.value : 'setups';
-        }
+        };
 
-        window.carregarParametrosCategoria = function() {
+        window.carregarParametrosCategoria = async function() {
             const cat = window.obterCategoriaAtual();
-            const storageKey = `cockpit_cat_${cat}`;
-            const itens = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            let itens = [];
+
+            try {
+                const response = await fetch(`/api/parametros?categoria=${cat}`, { credentials: 'same-origin' });
+                if (response.ok) {
+                    const dadosServidor = await response.json();
+                    if (Array.isArray(dadosServidor)) {
+                        itens = normalizarItens(dadosServidor);
+                    }
+                }
+            } catch(e) {
+                console.error("Erro ao buscar parâmetros da API:", e);
+            }
+
+            window._itensCacheCategoria = itens;
+            window.renderizarTabelaParametros(itens);
+        };
+
+        window.renderizarTabelaParametros = function(itens) {
             const tbody = document.getElementById('tabelaParametrosCorpo');
             if (!tbody) return;
 
             tbody.innerHTML = '';
 
-            if (itens.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-gray-500">Nenhum parâmetro cadastrado nesta categoria. Utilize o botão acima para adicionar um novo item.</td></tr>`;
+            if (!Array.isArray(itens) || itens.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="py-8 text-center text-gray-500 italic">
+                            Nenhum item cadastrado para esta categoria. Clique em "+ Adicionar Item" para começar.
+                        </td>
+                    </tr>
+                `;
                 return;
             }
 
             itens.forEach((item, index) => {
-                const nome = typeof item === 'object' ? (item.nome || '') : item;
-                const descricao = typeof item === 'object' ? (item.descricao || '') : '';
-
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-gray-950/30 transition';
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-mono text-gray-500 align-middle">#${index + 1}</td>
                     <td class="py-3 px-4 align-middle">
-                        <input type="text" value="${nome}" oninput="window.atualizarItemParametro(${index}, 'nome', this.value)" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3.5 py-2 text-xs text-white outline-none focus:border-cyan-500 font-mono shadow-inner">
+                        <input type="text" value="${item.nome || ''}" oninput="window.atualizarItemParametroEmMemoria(${index}, 'nome', this.value)" onblur="window.salvarEstadoAtualServidor()" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3.5 py-2 text-xs text-white outline-none focus:border-cyan-500 font-mono shadow-inner">
                     </td>
                     <td class="py-3 px-4 align-middle">
-                        <input type="text" value="${descricao}" oninput="window.atualizarItemParametro(${index}, 'descricao', this.value)" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3.5 py-2 text-xs text-gray-200 outline-none focus:border-cyan-500 shadow-inner">
+                        <input type="text" value="${item.descricao || ''}" oninput="window.atualizarItemParametroEmMemoria(${index}, 'descricao', this.value)" onblur="window.salvarEstadoAtualServidor()" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3.5 py-2 text-xs text-gray-200 outline-none focus:border-cyan-500 shadow-inner">
                     </td>
                     <td class="py-3 px-4 text-right align-middle">
                         <button onclick="window.removerItemParametro(${index})" class="text-red-400 hover:text-red-300 bg-red-950/40 hover:bg-red-950 border border-red-900/50 px-2.5 py-1.5 rounded-lg transition text-[11px]">
@@ -156,42 +132,46 @@
                 `;
                 tbody.appendChild(tr);
             });
-        }
+        };
 
-        window.atualizarItemParametro = function(index, campo, valor) {
-            const cat = window.obterCategoriaAtual();
-            const storageKey = `cockpit_cat_${cat}`;
-            let itens = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            
-            if (itens[index]) {
-                if (typeof itens[index] !== 'object') {
-                    itens[index] = { nome: itens[index], descricao: '' };
-                }
-                itens[index][campo] = valor;
-                localStorage.setItem(storageKey, JSON.stringify(itens));
+        window.atualizarItemParametroEmMemoria = function(index, campo, valor) {
+            if (!window._itensCacheCategoria) window._itensCacheCategoria = [];
+            if (window._itensCacheCategoria[index]) {
+                window._itensCacheCategoria[index][campo] = valor;
             }
-        }
+        };
 
-        window.adicionarNovoParametroLinha = function() {
+        window.salvarEstadoAtualServidor = async function() {
             const cat = window.obterCategoriaAtual();
-            const storageKey = `cockpit_cat_${cat}`;
-            let itens = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            
-            itens.push({ nome: 'NOVO ITEM', descricao: 'Descreva aqui...' });
-            localStorage.setItem(storageKey, JSON.stringify(itens));
-            window.carregarParametrosCategoria();
-        }
+            const itensNormalizados = normalizarItens(window._itensCacheCategoria);
+            try {
+                await fetch(`/api/parametros?categoria=${cat}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(itensNormalizados)
+                });
+            } catch(e) {
+                console.error("Erro ao salvar parâmetros no servidor:", e);
+            }
+        };
 
-        window.removerItemParametro = function(index) {
-            const cat = window.obterCategoriaAtual();
-            const storageKey = `cockpit_cat_${cat}`;
-            let itens = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            
-            itens.splice(index, 1);
-            localStorage.setItem(storageKey, JSON.stringify(itens));
-            window.carregarParametrosCategoria();
-        }
+        window.adicionarNovoParametroLinha = async function() {
+            if (!window._itensCacheCategoria) window._itensCacheCategoria = [];
+            window._itensCacheCategoria.push({ nome: 'NOVO ITEM', descricao: 'Descreva aqui...' });
+            window.renderizarTabelaParametros(window._itensCacheCategoria);
+            await window.salvarEstadoAtualServidor();
+        };
 
-        window.carregarParametrosCategoria();
+        window.removerItemParametro = async function(index) {
+            if (!window._itensCacheCategoria) window._itensCacheCategoria = [];
+            window._itensCacheCategoria.splice(index, 1);
+            window.renderizarTabelaParametros(window._itensCacheCategoria);
+            await window.salvarEstadoAtualServidor();
+        };
+
+        (function init() {
+            window.carregarParametrosCategoria();
+        })();
     })();
 </script>
